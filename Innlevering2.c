@@ -5,20 +5,22 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "secretCoder.h"
+#include "secret.h"
 #include "fileList.h"
 
 #define MAX_FILES_SIZE 850
 
-int readFromFile(  char filename[], const char *mode);
 bool alphabetic( const char letter);
 bool space( const char letter);
 int  countLetter( const char string[]);
+int readFromFile(  char filename[], const char *mode, char *testKey);
 void closeFile( char *fileArray, FILE* filePtr );
-
+int decoder(char *test,char *fileArray, int counter);
+char alphabeticHigherCase(const char letter);
 
 int main(void){	
 
-		readFromFile(FILENAME3, "r");
+		readFromFile(FILENAME3, "r", SECRETSTRING);
 	//	char* decodedMessage;
 	//	int status;
 		//decodedMessage = decode("secretCoder.txt", FILENAME1, 1);
@@ -50,12 +52,20 @@ int main(void){
 		
 }
 
-
 bool alphabetic( const char letter){
 	if( ( letter >= 'a' && letter <= 'z') || ( letter >= 'A' && letter <= 'Z'))
 		return true;
 	else
 		return false;
+}
+char alphabeticHigherCase( const char letter){
+	char tempLetter = '-';
+
+	if( letter >= 'A' && letter <= 'Z'){
+		tempLetter += letter;
+		return tempLetter;
+	}else
+		return letter;
 }
 
 bool space( const char letter){
@@ -67,32 +77,60 @@ bool space( const char letter){
 }
 
 int getCharPosition(char *fileArray, int arrayLength, char charTarget){
+
 	for( int i = 0 ; i < arrayLength; i++){
 
-			if(fileArray[i] == charTarget ){
-				return i;
-			}
+		if(fileArray[i] == charTarget ){
+			return i;
+		}
 	}
 	return -1;
 }
 
 void closeFile( char *fileArray, FILE* filePtr ){
-			free(fileArray);
-		   	fileArray = NULL;
 
-		    printf("\n\n");
+		free(fileArray);
+		fileArray = NULL;
 
-		    fclose (filePtr);
+		printf("\n\n");
+
+		fclose (filePtr);
+}
+bool compareToChar( char xInput, char yInput) {
+
+		if(xInput != yInput  )
+			return true;			
+		else
+			return false;
+		
+}
+int decoder(char *test, char *fileArray, int counter){
+		if( test == NULL ){
+			printf("Error filekey was not found, or where unable to open.\n" );
+		    return -1;
+		}
+		for(int j = 0; j < strlen(test); j++){
+			printf("%c", test[j] );
+			if( alphabetic (test[j])){
+				
+				int charPos = getCharPosition(fileArray, counter, test[j]);
+				if( compareToChar(test[j], test[j+1] )){
+					printf("[%d] ", charPos);
+
+				}
+			}
+			printf("\n");
+		}
+		return 0;
 }
 
-int readFromFile( char filename[], const char *mode){
+int readFromFile( char filename[], const char *mode, char *test){
 		FILE* filePtr;
 		int index ;
 		
 		char *fileArray = malloc(sizeof(char)*2);
 		int length = 2;
 		int counter = 0 ;
-
 
 		filePtr = fopen(filename, "r");
 
@@ -120,33 +158,19 @@ int readFromFile( char filename[], const char *mode){
 
 	   }while(true);
 
-	     printf("%s\n\n", fileArray );
 
-		char *test = "hei dette er en testqz";
-		printf("\n%s\n",test );
-		for(int j = 0; j < strlen(test); j++){
-			printf("%c", test[j] );
-			if( alphabetic (test[j])){
-				int charPos = getCharPosition(fileArray, counter, test[j]);
-				printf("%d ", charPos);
-			}
-			printf("\n");
-			
-		}
+	   	// PRINT OUT TEST OF FILE ARRAY
+	    printf("%s\n\n", fileArray );
+	    // KEY MESSAGE PRINT OUT
+		printf("\n%s\n\n",test );
 
+		decoder(test ,fileArray, counter);
+	
 		closeFile(fileArray, filePtr);
 
 		return 0;
 }
-/*
-	   	free(fileArray);
-	   	fileArray = NULL;
-
-	    printf("\n\n");
-
-	    fclose (filePtr);
-
-*/	    
+    
 	   
 	   
 
