@@ -7,25 +7,22 @@
 #include "secretCoder.h"
 #include "fileList.h"
 
-#define MAX_FILES_SIZE 200000
+#define MAX_FILES_SIZE 850
 
 int readFromFile(  char filename[], const char *mode);
-
-char *encode(const char *inputMessageFile, const char *keyFile, int *status);       // koder beskjed
-int encode2(const char *inputMessageFile, const char *keyFile, char *encodedStream);
-char *decode(const char *inputCodeFile, const char *keyFile, int status);			// tilbake til normal
-int decode2(const char *inputCodeFile, const char *keyFile, char *decodedMessage);
-
 bool alphabetic( const char letter);
 bool space( const char letter);
 int  countLetter( const char string[]);
+void closeFile( char *fileArray, FILE* filePtr );
+
 
 int main(void){	
 
-		readFromFile(FILENAME1, "r");
-
+		readFromFile(FILENAME3, "r");
+	//	char* decodedMessage;
+	//	int status;
 		//decodedMessage = decode("secretCoder.txt", FILENAME1, 1);
-		//status = decode("secretCoder.txt", FILENAME1, decodedMessage);
+	//	status = decode("secretCoder.txt", FILENAME1, decodedMessage);
 	/*
 		TODO Encoding and Decoding reverse process 
 		-> convert code symbols back into understable form.
@@ -47,10 +44,12 @@ int main(void){
 		//[2] status = decode("myCode.txt", "hotelCalifornia.txt", decodedMessage);
 
 	*/
+
 		return 0;
 	
 		
 }
+
 
 bool alphabetic( const char letter){
 	if( ( letter >= 'a' && letter <= 'z') || ( letter >= 'A' && letter <= 'Z'))
@@ -66,63 +65,88 @@ bool space( const char letter){
 	else
 		return true;
 }
-int countLetter( const char string[] ) {
-	int countLetter = 0;	
-		
-	for(int i = 0 ; i < sizeof(*string); i++ ) {
-		++countLetter;
+
+int getCharPosition(char *fileArray, int arrayLength, char charTarget){
+	for( int i = 0 ; i < arrayLength; i++){
+
+			if(fileArray[i] == charTarget ){
+				return i;
+			}
 	}
-	return countLetter;
+	return -1;
 }
+
+void closeFile( char *fileArray, FILE* filePtr ){
+			free(fileArray);
+		   	fileArray = NULL;
+
+		    printf("\n\n");
+
+		    fclose (filePtr);
+}
+
 int readFromFile( char filename[], const char *mode){
 		FILE* filePtr;
-		int count =0;
 		int index ;
-		int i = 0;
-		//char *x[1000];
-		char c[ MAX_FILES_SIZE ];
+		
+		char *fileArray = malloc(sizeof(char)*2);
+		int length = 2;
+		int counter = 0 ;
 
-		//x = malloc(100 * sizeof(char));
+
 		filePtr = fopen(filename, "r");
-			
 
 		if(filePtr == NULL ){
 			printf("Error file does not exist, or file could not be open..\n" );
 		    return (-1);
 		}
-
+ 
 		
 	   do{
-
 	   		index = fgetc(filePtr);
-	   		c[i] = index;
-	   		++i;
+	 
+	   		if( alphabetic( index)){
+
+	   			if( counter == length){
+	   				length *=2;
+	   				fileArray = realloc( fileArray, length*sizeof(char) );
+	   			}
+	   			fileArray[counter++] = tolower(index);
+	   		}
 
 	   		if( feof(filePtr) ){
-	   			c[i] = index;
 	   			break;
 	   		}
 
 	   }while(true);
 
-	   printf("\n");
-	   for( int j = 0; j < 2500; ++j){
+	     printf("%s\n\n", fileArray );
 
-	   		if( alphabetic( c[j] )){
-	   			if(  space( c[j] )){
-	   				 printf("%c", tolower( c[j] ) );
-	   				 count++;				
-	   			}
-	   		}     	   
-	   	}
-	 	//long unsigned int s = countLetter(c);
-	    printf("\n\n");
-	  	printf("%d\n", count);
-	    // printf("%d words\n", countWords(c) );
-	  //  free(filePtr);
-	  //	free(filePtr);
-	    fclose (filePtr);
-	    return 0;
-	   
-	   
+		char *test = "hei dette er en testqz";
+		printf("\n%s\n",test );
+		for(int j = 0; j < strlen(test); j++){
+			printf("%c", test[j] );
+			if( alphabetic (test[j])){
+				int charPos = getCharPosition(fileArray, counter, test[j]);
+				printf("%d ", charPos);
+			}
+			printf("\n");
+			
+		}
+
+		closeFile(fileArray, filePtr);
+
+		return 0;
 }
+/*
+	   	free(fileArray);
+	   	fileArray = NULL;
+
+	    printf("\n\n");
+
+	    fclose (filePtr);
+
+*/	    
+	   
+	   
+
