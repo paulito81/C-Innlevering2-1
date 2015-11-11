@@ -1,4 +1,7 @@
-// Innlevering 2 by Paul Hasfjord
+/* Innlevering 2 by Paul Hasfjord
+	ENCODER / DECODER 
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,59 +10,60 @@
 #include "secretCoder.h"
 #include "secret.h"
 #include "fileList.h"
+#include "textColor.h"	
 
 #define MAX_FILES_SIZE 850
 
+
+static bool CLOSEDFILE = false;
+
 bool alphabetic( const char letter);
 bool space( const char letter);
-int  countLetter( const char string[]);
-int readFromFile(  char filename[], const char *mode, char *testKey);
+int countLetter( const char string[]);
 
-void closeFile( char *fileKey, FILE* filePtr );
+int readFromFile(  char filename[], const char *mode, char *testKey);
+bool closeFile( char *fileKey, FILE* filePtr );
+
 int decoder(char *key,char *message, int counter);
 char alphabeticHigherCase(const char letter);
 //char convertToArray(int aNumber, char character);
-void readFileMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *mode, char *testKey);
+void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *mode, char *testKey);
 
 // PRINT OUT
 void printOut(int index, int numbersOfFile[], int numChoice, int totalSum, char filename[]);
 void printQuit();
 
 int main(void ){	
+	
+	
 
 		char printOut[45] = "------------------------------------------";
-    
         char filename[1000] = "";
         int menuChoice =0, menuChoice2 =0;
         char inputFileName[100];
 	
-        readFileMenu(printOut, filename, menuChoice, menuChoice2, inputFileName, "r", SECRETSTRING);
+        encoderMenu(printOut, filename, menuChoice, menuChoice2, inputFileName, "r", SECRETSTRING);
 
-     
 		//readFromFile(FILENAME3, "r", SECRETSTRING);
-		
-		
-
-		return 0;
-	
-		
+		return 0;		
 }
 
-void readFileMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *mode, char *testKey){
+// MENU
+void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *mode, char *testKey){
                 mode = "r";
                 do{    //MENU CHOICE
-                
-                    printf("\n%s\n'Velkommen til Innlevering 2.0'\n%s\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom 1-3 + Trykk 'Enter')\n\n%s\n", printOut, printOut, printOut);
-                    printf("[Tast 1]\tLes inn en fil fra keyboard.\n");
-                    printf("[Tast 2]\tVelg en fil fra en ferdig liste.\n");
-                    printf("\n([Tast 3] for å 'avslutt programmet')\n:");
+                	
+                    printf(KCYN"\n%s\nVELKOMMEN TIL INNLEVERING 2.0\n\t<<'Kodeknekker'n'>>"RESET KYEL"\n%s\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n%s\n"RESET, printOut, printOut, printOut);
+                    printf("[Tast 1]\tSkriv navet på filen du vil kryptere fra keyboard.\n");
+                    printf("[Tast 2]\tVelg en fil fra en ferdig liste.\n%s", printOut);
+                    printf(KYEL"\n([Tast 3] for å 'avslutt programmet')\n:"RESET);
                     scanf("%d", &menuChoice);
                     
                     switch( menuChoice){
 
                             case 1:
                                     //READ FILE FROM KEYBOARD INPUT    
-                                    printf("\nSkriv inn filen du ønsker å åpne.\n(F.eks tast:  /home/ubuntu/Documents/Innlevering1/1.txt + 'Trykk Enter'  )\n:");
+                                    printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å ÅPNE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
                                     scanf(" %s", inputFileName);
                                     strcat(filename, inputFileName);
                                     readFromFile(filename, "r", testKey);
@@ -69,150 +73,150 @@ void readFileMenu(char printOut[], char filename[], int menuChoice, int menuChoi
                             case 2:
                                     do{
                                         // READ FILE FROM LIST
-                                        printf("\n%s\nVelg en av filene fra listen: \n(Tast inn et tall mellom 1-15 + Trykk 'Enter')\n%s\n", printOut, printOut);
+                                        printf(KCYN "\n%s\nVelg en av filene fra listen: \n(Tast inn et tall mellom [1-121] + Trykk 'Enter')\n%s\n"RESET ,printOut, printOut);
                                //TODO!!
-                                        printf("[Tast 1]: %s\n",  FILENAME1 );
-                                        printf("[Tast 2]: %s\n",  FILENAME2 );
-                                        printf("[Tast 3]: %s\n",  FILENAME3 );
-                                       	printf("[Tast 4]: %s\n",  FILENAME4 );
-                                        printf("[Tast 5]: %s\n",  FILENAME5 );
-                                        printf("[Tast 6]: %s\n",  FILENAME6 );
-                                        printf("[Tast 7]: %s\n",  FILENAME7 );
-                                        printf("[Tast 8]: %s\n",  FILENAME8 );
-                                        printf("[Tast 9]: %s\n",  FILENAME9 );
-                                        printf("[Tast 10]: %s\n", FILENAME10 );
-                                        printf("[Tast 11]: %s\n", FILENAME11 );
-                                        printf("[Tast 12]: %s\n", FILENAME12 );
-                                        printf("[Tast 13]: %s\n", FILENAME13 );
-                                        printf("[Tast 14]: %s\n", FILENAME14 );
-                                        printf("[Tast 15]: %s\n", FILENAME15 );
-                                        printf("[Tast 8]: %s\n",  FILENAME16 );
-                                        printf("[Tast 9]: %s\n",  FILENAME17 );
-                                        printf("[Tast 10]: %s\n", FILENAME18 );
-                                        printf("[Tast 11]: %s\n", FILENAME19 );
-                                        printf("[Tast 12]: %s\n", FILENAME20 );
-                                        printf("[Tast 13]: %s\n", FILENAME21 );
-                                        printf("[Tast 14]: %s\n", FILENAME22 );
-                                        printf("[Tast 15]: %s\n", FILENAME23 );
-                                        printf("[Tast 8]: %s\n",  FILENAME24 );
-                                        printf("[Tast 9]: %s\n",  FILENAME25 );
-                                        printf("[Tast 10]: %s\n", FILENAME26 );
-                                        printf("[Tast 11]: %s\n", FILENAME27 );
-                                        printf("[Tast 12]: %s\n", FILENAME28 );
-                                        printf("[Tast 13]: %s\n", FILENAME29 );
-                                        printf("[Tast 14]: %s\n", FILENAME30 );
-                                        printf("[Tast 15]: %s\n", FILENAME31 );
-                                        printf("[Tast 8]: %s\n",  FILENAME32 );
-                                        printf("[Tast 9]: %s\n",  FILENAME33 );
-                                        printf("[Tast 10]: %s\n", FILENAME34 );
-                                        printf("[Tast 11]: %s\n", FILENAME35 );
-                                        printf("[Tast 12]: %s\n", FILENAME36 );
-                                        printf("[Tast 13]: %s\n", FILENAME37 );
-                                        printf("[Tast 14]: %s\n", FILENAME38 );
-                                        printf("[Tast 15]: %s\n", FILENAME39 );
-                                        printf("[Tast 8]: %s\n",  FILENAME40 );
-                                        printf("[Tast 9]: %s\n",  FILENAME41 );
-                                        printf("[Tast 10]: %s\n", FILENAME42 );
-                                        printf("[Tast 11]: %s\n", FILENAME43 );
-                                        printf("[Tast 12]: %s\n", FILENAME44 );
-                                        printf("[Tast 13]: %s\n", FILENAME45 );
-                                        printf("[Tast 14]: %s\n", FILENAME46 );
-                                        printf("[Tast 15]: %s\n", FILENAME47 );
-                                        printf("[Tast 8]: %s\n",  FILENAME48 );
-                                        printf("[Tast 9]: %s\n",  FILENAME49 );
-                                        printf("[Tast 10]: %s\n", FILENAME50 );
-                                        printf("[Tast 11]: %s\n", FILENAME51 );
-                                        printf("[Tast 12]: %s\n", FILENAME52 );
-                                        printf("[Tast 13]: %s\n", FILENAME53 );
-                                        printf("[Tast 14]: %s\n", FILENAME54 );
-                                        printf("[Tast 15]: %s\n", FILENAME55 );
-                                        printf("[Tast 1]: %s\n",  FILENAME56 );
-                                        printf("[Tast 2]: %s\n",  FILENAME57 );
-                                        printf("[Tast 3]: %s\n",  FILENAME58 );
-                                       	printf("[Tast 4]: %s\n",  FILENAME59 );
-                                        printf("[Tast 5]: %s\n",  FILENAME60 );
-                                        printf("[Tast 6]: %s\n",  FILENAME61 );
-                                        printf("[Tast 7]: %s\n",  FILENAME62 );
-                                        printf("[Tast 8]: %s\n",  FILENAME63 );
-                                        printf("[Tast 9]: %s\n",  FILENAME64 );
-                                        printf("[Tast 10]: %s\n", FILENAME65 );
-                                        printf("[Tast 11]: %s\n", FILENAME66 );
-                                        printf("[Tast 12]: %s\n", FILENAME67 );
-                                        printf("[Tast 13]: %s\n", FILENAME68 );
-                                        printf("[Tast 14]: %s\n", FILENAME69 );
-                                        printf("[Tast 15]: %s\n", FILENAME70 );
-                                        printf("[Tast 8]: %s\n",  FILENAME71 );
-                                        printf("[Tast 9]: %s\n",  FILENAME72 );
-                                        printf("[Tast 10]: %s\n", FILENAME73 );
-                                        printf("[Tast 11]: %s\n", FILENAME74 );
-                                        printf("[Tast 12]: %s\n", FILENAME75 );
-                                        printf("[Tast 13]: %s\n", FILENAME76 );
-                                        printf("[Tast 14]: %s\n", FILENAME77 );
-                                        printf("[Tast 15]: %s\n", FILENAME78 );
-                                        printf("[Tast 8]: %s\n",  FILENAME79 );
-                                        printf("[Tast 9]: %s\n",  FILENAME80 );
-                                        printf("[Tast 10]: %s\n", FILENAME81 );
-                                        printf("[Tast 11]: %s\n", FILENAME82 );
-                                        printf("[Tast 12]: %s\n", FILENAME83 );
-                                        printf("[Tast 13]: %s\n", FILENAME84 );
-                                        printf("[Tast 14]: %s\n", FILENAME85 );
-                                        printf("[Tast 15]: %s\n", FILENAME86 );
-                                        printf("[Tast 8]: %s\n",  FILENAME87 );
-                                        printf("[Tast 9]: %s\n",  FILENAME88 );
-                                        printf("[Tast 10]: %s\n", FILENAME89 );
-                                        printf("[Tast 11]: %s\n", FILENAME90 );
-                                        printf("[Tast 12]: %s\n", FILENAME91 );
-                                        printf("[Tast 13]: %s\n", FILENAME92 );
-                                        printf("[Tast 14]: %s\n", FILENAME93 );
-                                        printf("[Tast 15]: %s\n", FILENAME94 );
-                                        printf("[Tast 8]: %s\n",  FILENAME95 );
-                                        printf("[Tast 9]: %s\n",  FILENAME96 );
-                                        printf("[Tast 10]: %s\n", FILENAME97 );
-                                        printf("[Tast 11]: %s\n", FILENAME98 );
-                                        printf("[Tast 12]: %s\n", FILENAME99 );
-                                        printf("[Tast 13]: %s\n", FILENAME100 );
-                                        printf("[Tast 14]: %s\n", FILENAME101 );
-                                        printf("[Tast 15]: %s\n", FILENAME102 );
-                                        printf("[Tast 8]: %s\n",  FILENAME103 );
-                                        printf("[Tast 9]: %s\n",  FILENAME104 );
-                                        printf("[Tast 10]: %s\n", FILENAME105 );
-                                        printf("[Tast 11]: %s\n", FILENAME106 );
-                                        printf("[Tast 12]: %s\n", FILENAME107 );
-                                        printf("[Tast 13]: %s\n", FILENAME108 );
-                                        printf("[Tast 14]: %s\n", FILENAME109 );
-                                        printf("[Tast 15]: %s\n", FILENAME110 );
-                                        printf("[Tast 11]: %s\n", FILENAME111 );
-                                        printf("[Tast 12]: %s\n", FILENAME112 );
-                                        printf("[Tast 13]: %s\n", FILENAME113 );
-                                        printf("[Tast 14]: %s\n", FILENAME114 );
-                                        printf("[Tast 15]: %s\n", FILENAME115 );
-                                        printf("[Tast 8]: %s\n",  FILENAME116 );
-                                        printf("[Tast 9]: %s\n",  FILENAME117 );
-                                        printf("[Tast 10]: %s\n", FILENAME118 );
-                                        printf("[Tast 11]: %s\n", FILENAME119 );
-                                        printf("[Tast 12]: %s\n", FILENAME120 );
-                                        printf("[Tast 13]: %s\n", FILENAME121 );
+                                        printf("[Tast 1]: %s\n",   FILENAME1 );
+                                        printf("[Tast 2]: %s\n",   FILENAME2 );
+                                        printf("[Tast 3]: %s\n",   FILENAME3 );
+                                       	printf("[Tast 4]: %s\n",   FILENAME4 );
+                                        printf("[Tast 5]: %s\n",   FILENAME5 );
+                                        printf("[Tast 6]: %s\n",   FILENAME6 );
+                                        printf("[Tast 7]: %s\n",   FILENAME7 );
+                                        printf("[Tast 8]: %s\n",   FILENAME8 );
+                                        printf("[Tast 9]: %s\n",   FILENAME9 );
+                                        printf("[Tast 10]: %s\n",  FILENAME10 );
+                                        printf("[Tast 11]: %s\n",  FILENAME11 );
+                                        printf("[Tast 12]: %s\n",  FILENAME12 );
+                                        printf("[Tast 13]: %s\n",  FILENAME13 );
+                                        printf("[Tast 14]: %s\n",  FILENAME14 );
+                                        printf("[Tast 15]: %s\n",  FILENAME15 );
+                                        printf("[Tast 16]: %s\n",  FILENAME16 );
+                                        printf("[Tast 17]: %s\n",  FILENAME17 );
+                                        printf("[Tast 18]: %s\n",  FILENAME18 );
+                                        printf("[Tast 19]: %s\n",  FILENAME19 );
+                                        printf("[Tast 20]: %s\n",  FILENAME20 );
+                                        printf("[Tast 21]: %s\n",  FILENAME21 );
+                                        printf("[Tast 22]: %s\n",  FILENAME22 );
+                                        printf("[Tast 23]: %s\n",  FILENAME23 );
+                                        printf("[Tast 24]: %s\n",  FILENAME24 );
+                                        printf("[Tast 25]: %s\n",  FILENAME25 );
+                                        printf("[Tast 26]: %s\n",  FILENAME26 );
+                                        printf("[Tast 27]: %s\n",  FILENAME27 );
+                                        printf("[Tast 28]: %s\n",  FILENAME28 );
+                                        printf("[Tast 29]: %s\n",  FILENAME29 );
+                                        printf("[Tast 30]: %s\n",  FILENAME30 );
+                                        printf("[Tast 31]: %s\n",  FILENAME31 );
+                                        printf("[Tast 32]: %s\n",  FILENAME32 );
+                                        printf("[Tast 33]: %s\n",  FILENAME33 );
+                                        printf("[Tast 34]: %s\n",  FILENAME34 );
+                                        printf("[Tast 35]: %s\n",  FILENAME35 );
+                                        printf("[Tast 36]: %s\n",  FILENAME36 );
+                                        printf("[Tast 37]: %s\n",  FILENAME37 );
+                                        printf("[Tast 38]: %s\n",  FILENAME38 );
+                                        printf("[Tast 39]: %s\n",  FILENAME39 );
+                                        printf("[Tast 40]: %s\n",  FILENAME40 );
+                                        printf("[Tast 41]: %s\n",  FILENAME41 );
+                                        printf("[Tast 42]: %s\n",  FILENAME42 );
+                                        printf("[Tast 43]: %s\n",  FILENAME43 );
+                                        printf("[Tast 44]: %s\n",  FILENAME44 );
+                                        printf("[Tast 45]: %s\n",  FILENAME45 );
+                                        printf("[Tast 46]: %s\n",  FILENAME46 );
+                                        printf("[Tast 47]: %s\n",  FILENAME47 );
+                                        printf("[Tast 48]: %s\n",  FILENAME48 );
+                                        printf("[Tast 49]: %s\n",  FILENAME49 );
+                                        printf("[Tast 50]: %s\n",  FILENAME50 );
+                                        printf("[Tast 51]: %s\n",  FILENAME51 );
+                                        printf("[Tast 52]: %s\n",  FILENAME52 );
+                                        printf("[Tast 53]: %s\n",  FILENAME53 );
+                                        printf("[Tast 54]: %s\n",  FILENAME54 );
+                                        printf("[Tast 55]: %s\n",  FILENAME55 );
+                                        printf("[Tast 56]: %s\n",  FILENAME56 );
+                                        printf("[Tast 57]: %s\n",  FILENAME57 );
+                                        printf("[Tast 58]: %s\n",  FILENAME58 );
+                                       	printf("[Tast 59]: %s\n",  FILENAME59 );
+                                        printf("[Tast 60]: %s\n",  FILENAME60 );
+                                        printf("[Tast 61]: %s\n",  FILENAME61 );
+                                        printf("[Tast 62]: %s\n",  FILENAME62 );
+                                        printf("[Tast 63]: %s\n",  FILENAME63 );
+                                        printf("[Tast 64]: %s\n",  FILENAME64 );
+                                        printf("[Tast 65]: %s\n",  FILENAME65 );
+                                        printf("[Tast 66]: %s\n",  FILENAME66 );
+                                        printf("[Tast 67]: %s\n",  FILENAME67 );
+                                        printf("[Tast 68]: %s\n",  FILENAME68 );
+                                        printf("[Tast 69]: %s\n",  FILENAME69 );
+                                        printf("[Tast 70]: %s\n",  FILENAME70 );
+                                        printf("[Tast 71]: %s\n",  FILENAME71 );
+                                        printf("[Tast 72]: %s\n",  FILENAME72 );
+                                        printf("[Tast 73]: %s\n",  FILENAME73 );
+                                        printf("[Tast 74]: %s\n",  FILENAME74 );
+                                        printf("[Tast 75]: %s\n",  FILENAME75 );
+                                        printf("[Tast 76]: %s\n",  FILENAME76 );
+                                        printf("[Tast 77]: %s\n",  FILENAME77 );
+                                        printf("[Tast 78]: %s\n",  FILENAME78 );
+                                        printf("[Tast 79]: %s\n",  FILENAME79 );
+                                        printf("[Tast 80]: %s\n",  FILENAME80 );
+                                        printf("[Tast 81]: %s\n",  FILENAME81 );
+                                        printf("[Tast 82]: %s\n",  FILENAME82 );
+                                        printf("[Tast 83]: %s\n",  FILENAME83 );
+                                        printf("[Tast 84]: %s\n",  FILENAME84 );
+                                        printf("[Tast 85]: %s\n",  FILENAME85 );
+                                        printf("[Tast 86]: %s\n",  FILENAME86 );
+                                        printf("[Tast 87]: %s\n",  FILENAME87 );
+                                        printf("[Tast 88]: %s\n",  FILENAME88 );
+                                        printf("[Tast 89]: %s\n",  FILENAME89 );
+                                        printf("[Tast 90]: %s\n",  FILENAME90 );
+                                        printf("[Tast 91]: %s\n",  FILENAME91 );
+                                        printf("[Tast 92]: %s\n",  FILENAME92 );
+                                        printf("[Tast 93]: %s\n",  FILENAME93 );
+                                        printf("[Tast 94]: %s\n",  FILENAME94 );
+                                        printf("[Tast 95]: %s\n",  FILENAME95 );
+                                        printf("[Tast 96]: %s\n",  FILENAME96 );
+                                        printf("[Tast 97]: %s\n",  FILENAME97 );
+                                        printf("[Tast 98]: %s\n",  FILENAME98 );
+                                        printf("[Tast 99]: %s\n",  FILENAME99 );
+                                        printf("[Tast 100]: %s\n", FILENAME100 );
+                                        printf("[Tast 101]: %s\n", FILENAME101 );
+                                        printf("[Tast 102]: %s\n", FILENAME102 );
+                                        printf("[Tast 103]: %s\n", FILENAME103 );
+                                        printf("[Tast 104]: %s\n", FILENAME104 );
+                                        printf("[Tast 105]: %s\n", FILENAME105 );
+                                        printf("[Tast 106]: %s\n", FILENAME106 );
+                                        printf("[Tast 107]: %s\n", FILENAME107 );
+                                        printf("[Tast 108]: %s\n", FILENAME108 );
+                                        printf("[Tast 109]: %s\n", FILENAME109 );
+                                        printf("[Tast 110]: %s\n", FILENAME110 );
+                                        printf("[Tast 111]: %s\n", FILENAME111 );
+                                        printf("[Tast 112]: %s\n", FILENAME112 );
+                                        printf("[Tast 113]: %s\n", FILENAME113 );
+                                        printf("[Tast 114]: %s\n", FILENAME114 );
+                                        printf("[Tast 115]: %s\n", FILENAME115 );
+                                        printf("[Tast 116]: %s\n", FILENAME116 );
+                                        printf("[Tast 117]: %s\n", FILENAME117 );
+                                        printf("[Tast 118]: %s\n", FILENAME118 );
+                                        printf("[Tast 119]: %s\n", FILENAME119 );
+                                        printf("[Tast 120]: %s\n", FILENAME120 );
+                                        printf("[Tast 121]: %s\n", FILENAME121 );
                                                                     
-                                        printf("\n([Tast 0]: For å 'avslutte')\n\n:" );
+                                        printf(KYEL"\n([Tast 0]: For å 'avslutte')\n\n:"RESET );
                                         scanf(" %d", &menuChoice2);
                             
                                         switch( menuChoice2 ){
 
-                                                case 1:
+                                                case 1:                                                                                                    
                                                         strcat(filename, FILENAME1);
                                                         readFromFile(filename, mode, testKey);
                                                         break;
                                                 case 2:
                                                         strcat(filename, FILENAME2);
-                                                        readFromFile(filename, mode, testKey);
+                                                        readFromFile(filename, mode, testKey);    
                                                         break;                                                  
                                                 case 3:
                                                         strcat(filename, FILENAME3);
-                                                        readFromFile(filename, mode, testKey);
+                                                        readFromFile(filename, mode, testKey);  
                                                         break;
                                                 case 4:
                                                         strcat(filename, FILENAME4);
-                                                        readFromFile(filename, mode, testKey);
+                                                        readFromFile(filename, mode, testKey);  
                                                         break;
  												case 5:
                                                         strcat(filename, FILENAME5);
@@ -686,40 +690,41 @@ void readFileMenu(char printOut[], char filename[], int menuChoice, int menuChoi
                                             	/// END OF FILE LIST
                                                        		
                                                 case 0:
-                                    					printf("\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n");
+                                    					printf(KCYN"\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n"RESET);
                                                 		printQuit();
 														break;
                                                      
 
                                                 default:        
-                                                        printf("En ugyldig inputverdi har blitt registret.\t\t --> Velg en verdi mellom [1..2] <--\n\n");
+                                                        printf(KRED"En ugyldig inputverdi har blitt registret.\n --> Velg en verdi mellom [1-121] <--\n\n"RESET);
                                                     
                                         }
                             
-                                    }while( menuChoice2 !=5 && menuChoice2 != 0 && !isdigit(menuChoice2) );
+                                    }while( menuChoice2 < 0 && menuChoice2 >121 && menuChoice2 != 0 && !isdigit(menuChoice2)  && !CLOSEDFILE);
                                                 break;
                             case 3:
 
-                                    printf("\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n");
+                                    printf(KCYN"\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n" RESET);
                                     printQuit();                        
                                     break;
                             
                             default:
-                                printf("En ugyldig inputverdi har blitt registret.\t\t --> Velg en verdi mellom [1..3] <--\n\n");                            
+                                printf(KRED"En ugyldig inputverdi har blitt registret.\t\t --> Velg en verdi mellom [1..3] <--\n\n"RESET);                            
                     }
 
-                }while( menuChoice !=3 && menuChoice !=0 && !isdigit(menuChoice)  );
+                }while( menuChoice !=3 && menuChoice !=0 && !isdigit(menuChoice) && !CLOSEDFILE );
             
 }// END OF READFILE MENU        
 
 
+// ALPHABETIC CHECK IF INPUT-KEY CONTAINS LETTERS
 bool alphabetic( const char letter){
 	if( ( letter >= 'a' && letter <= 'z') || ( letter >= 'A' && letter <= 'Z'))
 		return true;
 	else
 		return false;
 }
-
+// ALPHABETIC CHECK IF INPUT-KEY CONTAINS CAPTIAL LETTERS
 char alphabeticHigherCase( const char letter){
 	char tempLetter = '-';
 
@@ -738,6 +743,7 @@ bool space( const char letter){
 		return true;
 }
 
+// GET A CHARACTER WITH ITS POSITION IN THE ARRAY
 int getCharPosition(char *fileArray, int arrayLength, char charTarget){
 
 	for( int i = 0 ; i < arrayLength; i++){
@@ -749,27 +755,41 @@ int getCharPosition(char *fileArray, int arrayLength, char charTarget){
 	return -1;
 }
 
-void closeFile( char *fileArray, FILE* filePtr ){
+// CLOSE FILE
+bool closeFile( char *message, FILE* filePtr ){
+	int inputValue;
+	
+	printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': " );
+	scanf("%d", &inputValue);
 
-		free(fileArray);
-		fileArray = NULL;
-
-		//printf("\n\n");
-
-		fclose (filePtr);
-		//free(filePtr);
+	if(inputValue == 1){
+			return false;
+	}
+	else if( inputValue == 2) {
+			free(message);
+			message = NULL;
+			fclose (filePtr);
+			CLOSEDFILE = true;
+			printQuit();
+			return true;
+	}
+	else
+		printf(KRED"%d Error wrong key pressed!"RESET, inputValue);
+		return false;		
 }	
 
 
+// COMPARE TO CHAR SEE IF ITS A NEIGHBOR
 bool compareToChar( char xInput, char yInput ) {
 
-		if(xInput != yInput  )
-			return true;			
-		else
-			return false;
+	if(xInput != yInput  )
+		return true;			
+	else
+		return false;
 		
 }
 
+// CONVERT A CHAR TO INT WITH MINUS
 char convertToArray(int aNumber, char character){
 	
 		character = aNumber + '0';
@@ -777,19 +797,21 @@ char convertToArray(int aNumber, char character){
 
 }
 
-
+// DECODE A MESSAGE WITH A KEY AND LOOP THROUGH ALL CHECKS
 int decoder(char *key, char *message, int counter){
 		char *messageArray = '\0';
 		char bufferTempValue[64];
 		messageArray = malloc(sizeof(char)*10000);
 		//messageArray ='\0';
+
 		if( key == NULL ){
-			printf("Error filekey was not found, or where unable to open.\n" );
+			printf(KRED"Error filekey was not found, or where unable to open.\n" RESET);
 		    return -1;
 		}
+
 		for(unsigned int j = 0; j < strlen(key); j++) {
 
-			printf("%c", key[j] );  // change name to message
+		//	printf("%c", key[j] );  // change name to message
 			if( alphabetic (key[j] )){
 				
 				int charPos = getCharPosition(message, counter, key[j]);
@@ -818,7 +840,12 @@ int decoder(char *key, char *message, int counter){
 		return 0;
 }
 
+//READ FROM A FILE WITH INPUT MODE AND KEY
 int readFromFile( char filename[], const char *mode, char *key){
+
+	
+		printf("%s\n", filename );
+
 		FILE* filePtr = NULL;
 		int index = 0;
 		
@@ -829,9 +856,14 @@ int readFromFile( char filename[], const char *mode, char *key){
 		filePtr = fopen(filename, mode);
 
 		if(filePtr == NULL ){
-			printf("Error file does not exist, or file could not be open..\n" );
+			printf(KRED " Error file '%s' does not exist, or could not be open...\n"RESET, filename );
 		    return (-1);
 		}
+		// RESET FILENAME ARRAY
+		if(filename != NULL){
+			filename[0] = '\0';
+		}
+
  
 		
 	   do{
@@ -852,25 +884,27 @@ int readFromFile( char filename[], const char *mode, char *key){
 
 	   }while(true);
 	   
-
+	   	//RESET  MESSAGE
 	    message[counter]='\0';
 
 	   	// PRINT OUT TEST OF FILE ARRAY
-	    printf("%s\n\n", message ); // change name to key
+	    printf(KGRN"%s\n\n"RESET, message ); // change name to key
+
 	    // KEY MESSAGE PRINT OUT
-		printf("\n%s\n\n",key );   // change name to message
-
+		printf(KGRN"\n%s\n\n"RESET,key );   // change name to message
 		decoder(key ,message, counter);
-	
-		closeFile(message, filePtr);
 
+		// ASK FOR EXIT
+		CLOSEDFILE = closeFile(message, filePtr);
+		
 		return 0;
 }
 
+// PRINT OUT ASCII ART
 void printQuit(){   
 unsigned int sleep();
 
-printf("                                                                 \n");
+printf(KYEL"                                                                 \n");
 printf("                                                                 \n");
 printf("                               : @+@                             \n");           
 printf("                           : ' ;   @                            \n");          
@@ -941,8 +975,8 @@ printf("                 ```:#;;:::'@@':,,,,,,,,,,,,,,,,:+@:++                  
 printf("                 @@;;;;;:::::::::::::;;;;;;;::::::::@+					   \n");   	
 sleep(1); 
 printf("																			\n");  
-printf("																			\n");  
-printf(" \t\t\t\tGOOD BYE! \n\n");
+printf("																			\n"RESET);  
+printf(KYEL" \t\t\t\tGOOD BYE! \n\n"RESET);
 
 exit(0);
  }
