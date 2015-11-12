@@ -23,6 +23,7 @@ int readFromFile(  char filename[], const char *modePtr, char *keyPtr);
 bool closeFile( char *fileKey, FILE* filePtr );
 int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr);
 bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr );
+bool compareToChar( int xInput, int yInput );
 
 int decoder(char *key,char *message, int counter);
 char alphabeticHigherCase(const char letter);
@@ -54,7 +55,7 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
                 
                 do{ //START OF MENU 1 CHOOSE MANUAL, AUTO OR QUIT
                 	
-                    printf(KCYN MENUL"\nVELKOMMEN TIL INNLEVERING 2.0\n\t<<'Kodeknekker'n'>>"RESET KYEL "\n"MENUL"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n"MENUL RESET );
+                    printf(KCYN MENUL"\n\tVELKOMMEN TIL INNLEVERING 2.0\n\t<<'Kodeknekker'n'>>"RESET KYEL "\n"MENUL"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n\n"MENUL RESET );
                     printf("\n[Tast 1]\tSkriv navet på filen du vil kryptere fra keyboard.\n");
                     printf("[Tast 2]\tVelg en fil fra en ferdig liste.\n"MENUL );
                     printf(KYEL"\n([Tast -1] for å 'avslutt programmet')\n:"RESET);
@@ -68,7 +69,7 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
                                 	break;                       	
                     		case 0:
                     				inputConverter = menuChoice + '0';
-                    				printf(KRED LINE"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%s' og vil nå avsluttes!\n" LINE RESET, &inputConverter);
+                    				printf(KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%s' og vil nå avsluttes!\n" MENUL "\n"RESET, &inputConverter);
                     				exit(0);
                     				break;
                             //READ FILE FROM KEYBOARD INPUT    
@@ -227,7 +228,7 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
 					                                	break;                       	
 					                    		case 0:
 					                    				inputConverter = menuChoice2 + '0';
-					                    				printf(KRED LINE"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding: '%s' og vil nå avsluttes!\n"LINE RESET, &inputConverter);
+					                    				printf(KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding: '%s' og vil nå avsluttes!\n"MENUL "\n"RESET, &inputConverter);
 					                    				exit(0);
 					                    				break;                                       	
                                                 case 1:                                                                                                    
@@ -740,21 +741,85 @@ bool readInFromKeyboard( char inputFileName[], const char *modePtr, char manualK
 	char *manualFilePtr = '\0';
 	manualFilePtr = malloc(sizeof(char)*10000);
 
+	if( manualKeyPtr == NULL){
+		printf(KRED "Out of memory\n"RESET);
+		return false;
+	}
+
 	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å ÅPNE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
     scanf(" %s", inputFileName);
     manualFilePtr = strcat(manualFilePtr, inputFileName);
-
     printf("%s\n", manualFilePtr );
 
     printf(KCYN"\nSKRIV INN KODEN DU VIL HA KRYPTERT."RESET "\n(F.eks tast:  Dette er en hemmlighet  +'Trykk Enter'  )\n:");
-	scanf("%s", manualKey);
-    manualKeyPtr = strcat(manualKeyPtr, manualKey);
-    printf("XXX %s\n", manualKeyPtr );     
-    printf("%s\n", manualKey );                       
+    scanf(" %[^\n]", manualKey);
+	manualFilePtr = strcpy(manualKeyPtr, manualKey);
 
-	readManualFile(inputFileName, modePtr, manualFilePtr, manualKeyPtr );
-   
+
+	readManualFile(inputFileName, modePtr, manualFilePtr, manualKeyPtr ); 
     return true;
+}
+
+int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr){
+
+		FILE* filePtr = NULL;
+		int index = 0;
+		
+		char *message = malloc(sizeof(char)*2);
+		int length = 2;
+		int counter = 0 ;
+
+		filePtr = fopen(filename, modePtr);
+			
+		if(filePtr == NULL ){
+			filename[0] = '\0';
+			printf(KRED "Error file '%s' does not exist, or could not be open...\n"RESET, filename );
+		    return (-1);
+		}
+		// RESET FILENAME ARRAY
+		if(filename != NULL){
+			filename[0] = '\0';
+		}
+		
+	 do{
+	   		index = fgetc(filePtr);
+	 
+	   		if( alphabetic( index)){
+
+	   			if( counter == length){
+	   				length *=2;
+	   				message = realloc( message, length*sizeof(char) );
+	   			}
+	   			message[counter++] = tolower(index);
+	   		}
+
+	   		if( feof(filePtr) ){
+	   			break;
+	   		}
+
+	    }while(true);
+	   
+	   	//RESET  MESSAGE
+	   // message[counter]='\0';
+
+	   	// PRINT OUT TEST OF FILE ARRAY
+	    printf(KGRN"%s\n\n"RESET, message ); // change name to key
+
+	    // KEY MESSAGE PRINT OUT
+	    printf("%s\n", manualKeyPtr);
+
+		printf( KCYN"\n%s\n\n"RESET, manualKeyPtr );   // change name to message
+		decoder(manualKeyPtr ,message, counter);
+
+		// RESET KEY
+		//if( manualKeyPtr !=NULL ){
+		//	manualKeyPtr[0] = '\0';
+
+		//}
+		
+		CLOSEDFILE = closeManualFile( message, filePtr, manualFilePtr, manualKeyPtr );
+		
+		return 0;
 }
 
 // ALPHABETIC CHECK IF INPUT-KEY CONTAINS LETTERS
@@ -833,16 +898,19 @@ bool closeFile( char *message, FILE* filePtr) {
 // CLOSE FILE
 bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr ) {
 
-
 	int inputValue;
 	
 	do {
 
-		printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': " );
+		printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': \n" );
 		scanf("%d", &inputValue);
 	
 		switch(inputValue){
 
+			case 0: 
+                    printf(KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%d' og vil nå avsluttes!\n" MENUL "\n"RESET, inputValue);
+                  	exit(0);
+                    break;
 			case 1:
 					CLOSEDFILE = false;
 					return false;
@@ -865,13 +933,13 @@ bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *m
 		}
 
 
-	} while(  inputValue !=2 && !CLOSEDFILE   ); 
+	} while(  inputValue !=2 && !CLOSEDFILE && !isalpha(inputValue)  ); 
 
 	return false;
 }
 
 // COMPARE TO CHAR SEE IF ITS A NEIGHBOR
-bool compareToChar( char xInput, char yInput ) {
+bool compareToChar( int xInput, int yInput ) {
 
 	if(xInput != yInput  )
 		return true;			
@@ -889,16 +957,17 @@ char convertToArray(int aNumber, char character){
 }
 
 // DECODE A MESSAGE WITH A KEY AND LOOP THROUGH ALL CHECKS
-int decoder(char *key, char *message, int counter){
+int decoder(char *key, char *message, int counter) {
+
 		char *messageArray = '\0';
 		char bufferTempValue[64];
-		messageArray = malloc(sizeof(char)*10000);
-		//messageArray ='\0';
+		messageArray = malloc( sizeof(char)*10000 );
 
 		if( key == NULL ){
 			printf(KRED"Error keyFile was not found, or where unable to open.\n" RESET);
 		    return -1;
 		}
+
 		printf(KMAG "DIN KRYPTERTE KODE:\n"LINE "\n" RESET);
 		for(unsigned int j = 0; j < strlen(key); j++) {
 
@@ -933,66 +1002,6 @@ int decoder(char *key, char *message, int counter){
 		free(messageArray);
 		return 0;
 
-}
-int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr){
-
-		FILE* filePtr = NULL;
-		int index = 0;
-		
-		char *message = malloc(sizeof(char)*2);
-		int length = 2;
-		int counter = 0 ;
-
-		filePtr = fopen(filename, modePtr);
-			
-		if(filePtr == NULL ){
-			filename[0] = '\0';
-			printf(KRED "Error file '%s' does not exist, or could not be open...\n"RESET, filename );
-		    return (-1);
-		}
-		// RESET FILENAME ARRAY
-		if(filename != NULL){
-			filename[0] = '\0';
-		}
-		
-		
-	   do{
-	   		index = fgetc(filePtr);
-	 
-	   		if( alphabetic( index)){
-
-	   			if( counter == length){
-	   				length *=2;
-	   				message = realloc( message, length*sizeof(char) );
-	   			}
-	   			message[counter++] = tolower(index);
-	   		}
-
-	   		if( feof(filePtr) ){
-	   			break;
-	   		}
-
-	   }while(true);
-	   
-	   	//RESET  MESSAGE
-	    message[counter]='\0';
-
-	   	// PRINT OUT TEST OF FILE ARRAY
-	    printf(KGRN"%s\n\n"RESET, message ); // change name to key
-
-	    // KEY MESSAGE PRINT OUT
-		printf(KCYN"\n%s\n\n"RESET,manualKeyPtr );   // change name to message
-		decoder(manualKeyPtr ,message, counter);
-
-		// RESET KEY
-		if( manualKeyPtr !=NULL){
-			manualKeyPtr[0] = '\0';
-
-		}
-		
-		CLOSEDFILE = closeManualFile(message, filePtr, manualFilePtr, manualKeyPtr);
-		
-		return 0;
 }
 //READ FROM A FILE WITH INPUT modePtr AND KEY
 int readFromFile( char filename[], const char *modePtr, char *key){
