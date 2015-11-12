@@ -1,1 +1,1 @@
-#define SECRETSTRING "to be or not to be that is the question."
+#define SECRETSTRING "To be. Or NOT ,to BE that is the Question!"
