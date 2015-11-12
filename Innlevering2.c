@@ -12,22 +12,20 @@
 #include "fileList.h"
 #include "textColor.h"	
 
-#define MAX_FILES_SIZE 850
-
-
 static bool CLOSEDFILE = false;
 
 bool alphabetic( const char letter);
 bool space( const char letter);
 int countLetter( const char string[]);
 
+// FILE READ AND CLOSE
 int readFromFile(  char filename[], const char *mode, char *testKey);
 bool closeFile( char *fileKey, FILE* filePtr );
 
 int decoder(char *key,char *message, int counter);
 char alphabeticHigherCase(const char letter);
 //char convertToArray(int aNumber, char character);
-void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *mode, char *testKey);
+void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *mode, char *testKey, char inputConverter);
 
 // PRINT OUT
 void printOut(int index, int numbersOfFile[], int numChoice, int totalSum, char filename[]);
@@ -35,31 +33,38 @@ void printQuit();
 
 int main(void ){	
 	
-	
-
 		char printOut[45] = "------------------------------------------";
         char filename[1000] = "";
         int menuChoice =0, menuChoice2 =0;
         char inputFileName[100];
-	
-        encoderMenu(printOut, filename, menuChoice, menuChoice2, inputFileName, "r", SECRETSTRING);
-
+        char inputConverter ='0';
+        encoderMenu(printOut, filename, menuChoice, menuChoice2, inputFileName, "r", SECRETSTRING, inputConverter);
 		//readFromFile(FILENAME3, "r", SECRETSTRING);
 		return 0;		
 }
 
 // MENU
-void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *mode, char *testKey){
-                mode = "r";
-                do{    //MENU CHOICE
+void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *mode, char *testKey, char inputConverter){
+                
+                do{ //START OF MENU 1 CHOOSE MANUAL, AUTO OR QUIT
                 	
                     printf(KCYN"\n%s\nVELKOMMEN TIL INNLEVERING 2.0\n\t<<'Kodeknekker'n'>>"RESET KYEL"\n%s\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n%s\n"RESET, printOut, printOut, printOut);
                     printf("[Tast 1]\tSkriv navet på filen du vil kryptere fra keyboard.\n");
                     printf("[Tast 2]\tVelg en fil fra en ferdig liste.\n%s", printOut);
-                    printf(KYEL"\n([Tast 3] for å 'avslutt programmet')\n:"RESET);
+                    printf(KYEL"\n([Tast -1] for å 'avslutt programmet')\n:"RESET);
                     scanf("%d", &menuChoice);
                     
-                    switch( menuChoice){
+                  
+                    switch( menuChoice) {
+
+                    		case -1: 
+                                	printQuit();                        
+                                	break;                       	
+                    		case 0:
+                    				inputConverter = menuChoice + '0';
+                    				printf(KRED"Verdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%s' og vil nå avsluttes!\n "RESET, &inputConverter);
+                    				exit(0);
+                    				break;
 
                             case 1:
                                     //READ FILE FROM KEYBOARD INPUT    
@@ -67,14 +72,14 @@ void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoic
                                     scanf(" %s", inputFileName);
                                     strcat(filename, inputFileName);
                                     readFromFile(filename, "r", testKey);
-
                                     break;
 
                             case 2:
-                                    do{
-                                        // READ FILE FROM LIST
+
+                                    do{  //START OF MENU 2 GET FILE FROM LIST
+                                        
                                         printf(KCYN "\n%s\nVelg en av filene fra listen: \n(Tast inn et tall mellom [1-121] + Trykk 'Enter')\n%s\n"RESET ,printOut, printOut);
-                               //TODO!!
+                             
                                         printf("[Tast 1]: %s\n",   FILENAME1 );
                                         printf("[Tast 2]: %s\n",   FILENAME2 );
                                         printf("[Tast 3]: %s\n",   FILENAME3 );
@@ -197,11 +202,20 @@ void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoic
                                         printf("[Tast 120]: %s\n", FILENAME120 );
                                         printf("[Tast 121]: %s\n", FILENAME121 );
                                                                     
-                                        printf(KYEL"\n([Tast 0]: For å 'avslutte')\n\n:"RESET );
+                                        printf(KYEL"\n([Tast -1]: For å 'avslutte')\n\n:"RESET );
                                         scanf(" %d", &menuChoice2);
                             
-                                        switch( menuChoice2 ){
+                                        switch( menuChoice2 ) {
 
+
+					                    		case -1: 
+					                                	printQuit();                        
+					                                	break;                       	
+					                    		case 0:
+					                    				inputConverter = menuChoice2 + '0';
+					                    				printf(KRED"Verdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding: '%s' og vil nå avsluttes!\n "RESET, &inputConverter);
+					                    				exit(0);
+					                    				break;                                       	
                                                 case 1:                                                                                                    
                                                         strcat(filename, FILENAME1);
                                                         readFromFile(filename, mode, testKey);
@@ -685,35 +699,25 @@ void encoderMenu(char printOut[], char filename[], int menuChoice, int menuChoic
                                                 case 121:
                                                         strcat(filename, FILENAME121);
                                                         readFromFile(filename, mode, testKey);
-                                                        break;
-                                            	
-                                            	/// END OF FILE LIST
-                                                       		
-                                                case 0:
-                                    					printf(KCYN"\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n"RESET);
-                                                		printQuit();
-														break;
-                                                     
+                                                        break;                                                                                   
+                                                default:                                                         
+                                                  		printf(KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [1-121])\n\n"RESET, menuChoice2);
+                  	 									break;      
 
-                                                default:        
-                                                        printf(KRED"En ugyldig inputverdi har blitt registret.\n --> Velg en verdi mellom [1-121] <--\n\n"RESET);
-                                                    
-                                        }
+                                        } // END OF SWITCH MENU 2
                             
-                                    }while( menuChoice2 < 0 && menuChoice2 >121 && menuChoice2 != 0 && !isdigit(menuChoice2)  && !CLOSEDFILE);
-                                                break;
-                            case 3:
+                                    }while( (menuChoice2 > 0 && menuChoice2 <=121) ||  isalpha(menuChoice2)  || !CLOSEDFILE);
+                                     //while( menuChoice2 >=1 && menuChoice2 <=121 && !isdigit(menuChoice2) );
+                                     break; // END OF CHOICE 2 IN MENU 1
 
-                                    printf(KCYN"\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n" RESET);
-                                    printQuit();                        
-                                    break;
-                            
-                            default:
-                                printf(KRED"En ugyldig inputverdi har blitt registret.\t\t --> Velg en verdi mellom [1..3] <--\n\n"RESET);                            
-                    }
-
-                }while( menuChoice !=3 && menuChoice !=0 && !isdigit(menuChoice) && !CLOSEDFILE );
-            
+                        default:                  
+		                        printf(KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [0-2])\n\n"RESET, menuChoice);   
+        		                break;
+                    } // END OF SWITCH MENU 1
+                    
+                    
+                }while( (menuChoice > 0 && menuChoice <=2) || isalpha(menuChoice) || !CLOSEDFILE); //END OF WHILE MENU 1    
+                  
 }// END OF READFILE MENU        
 
 
@@ -724,6 +728,7 @@ bool alphabetic( const char letter){
 	else
 		return false;
 }
+
 // ALPHABETIC CHECK IF INPUT-KEY CONTAINS CAPTIAL LETTERS
 char alphabeticHigherCase( const char letter){
 	char tempLetter = '-';
@@ -756,12 +761,43 @@ int getCharPosition(char *fileArray, int arrayLength, char charTarget){
 }
 
 // CLOSE FILE
-bool closeFile( char *message, FILE* filePtr ){
+bool closeFile( char *message, FILE* filePtr ) {
+
 	int inputValue;
 	
-	printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': " );
-	scanf("%d", &inputValue);
+	do {
 
+		printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': " );
+		scanf("%d", &inputValue);
+	
+		switch(inputValue){
+
+			case 1:
+					CLOSEDFILE = false;
+					return false;
+					break;
+			case 2: 
+					free(message);
+					message = NULL;
+					fclose (filePtr);
+					CLOSEDFILE = true;
+					printQuit();
+					return true;
+					break;
+
+			 default:
+			 		printf(KRED"Error wrong key pressed: '%d'"RESET, inputValue);
+			 		break;
+			 		
+
+
+		}
+
+	} while(  inputValue !=2 && !CLOSEDFILE   ); 
+
+	return false;
+}	
+	/*
 	if(inputValue == 1){
 			return false;
 	}
@@ -773,10 +809,15 @@ bool closeFile( char *message, FILE* filePtr ){
 			printQuit();
 			return true;
 	}
+	else if(isdigit(inputValue )){
+		printf(KRED"%d Error wrong key pressed, not a digit!"RESET, inputValue);
+		return false;
+	}
 	else
 		printf(KRED"%d Error wrong key pressed!"RESET, inputValue);
-		return false;		
-}	
+		return false;
+		*/	
+
 
 
 // COMPARE TO CHAR SEE IF ITS A NEIGHBOR
@@ -811,15 +852,15 @@ int decoder(char *key, char *message, int counter){
 
 		for(unsigned int j = 0; j < strlen(key); j++) {
 
-		//	printf("%c", key[j] );  // change name to message
 			if( alphabetic (key[j] )){
 				
 				int charPos = getCharPosition(message, counter, key[j]);
 				
 				sprintf(bufferTempValue, "[%d]", charPos );
+				printf("%c", key[j] );  
 				printf("%s\n", bufferTempValue );
 				messageArray = strcat(messageArray, bufferTempValue);
-				printf("%s\n", messageArray );
+			//	printf("%s\n", messageArray );
 
 				if( compareToChar(key[j], key[j+1] )){
 
@@ -831,6 +872,8 @@ int decoder(char *key, char *message, int counter){
 			}else{
 				sprintf(bufferTempValue, "%c", key[j] );
 				messageArray = strcat(messageArray, bufferTempValue);
+				printf("%c", key[j] );  
+				printf("%s\n", bufferTempValue );
 			//	printf("%s\n", messageArray );
 
 			}
@@ -856,7 +899,8 @@ int readFromFile( char filename[], const char *mode, char *key){
 		filePtr = fopen(filename, mode);
 
 		if(filePtr == NULL ){
-			printf(KRED " Error file '%s' does not exist, or could not be open...\n"RESET, filename );
+			printf(KRED "Error file '%s' does not exist, or could not be open...\n"RESET, filename );
+			filename[0] = '\0';
 		    return (-1);
 		}
 		// RESET FILENAME ARRAY
@@ -891,17 +935,18 @@ int readFromFile( char filename[], const char *mode, char *key){
 	    printf(KGRN"%s\n\n"RESET, message ); // change name to key
 
 	    // KEY MESSAGE PRINT OUT
-		printf(KGRN"\n%s\n\n"RESET,key );   // change name to message
+		printf(KCYN"\n%s\n\n"RESET,key );   // change name to message
 		decoder(key ,message, counter);
 
 		// ASK FOR EXIT
 		CLOSEDFILE = closeFile(message, filePtr);
-		
+		//closeFile(message, filePtr);
 		return 0;
 }
 
 // PRINT OUT ASCII ART
-void printQuit(){   
+void printQuit() {   
+printf(KCYN"\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n"RESET);
 unsigned int sleep();
 
 printf(KYEL"                                                                 \n");
@@ -921,7 +966,7 @@ printf("                         #:::::,,,,,,,,,,,,.                            
 printf("                         #:::::,,,,,,,,,,,,.;                              \n"); 
 printf("                         @:::::,,@'@:,,,@'@:`                              \n");    
 printf("                         ;:::::@     +:     @                              \n"); 
-printf("                          ::::'       @      :                             \n"); 
+printf("                         ::::'       @      :                             \n"); 
 printf("       @#,               ::::,              '               ,;;:          \n"); 
 printf("    ':+:,,,              @:::  ;@         `.'              .:::';'        \n");   
 printf("   :,,,;,,,              ::@:`          :'  +              +',:::,:       \n");  
@@ -952,7 +997,7 @@ printf("               ,::::,,:                     .         '.                
 printf("                ,::::@         ,            +                              \n");  
 printf("                 `;:@                                 @                    \n");  
 printf("                  `@``                       '       @                     \n");  
-printf("                  @````                      +      +                      \n");  
+printf("                   @````                      +      +                      \n");  
 printf("                   '`````                         @                        \n");  
 printf("                     @````                   ':@.                          \n");  
 sleep(1); 
@@ -976,7 +1021,7 @@ printf("                 @@;;;;;:::::::::::::;;;;;;;::::::::@+					   \n");
 sleep(1); 
 printf("																			\n");  
 printf("																			\n"RESET);  
-printf(KYEL" \t\t\t\tGOOD BYE! \n\n"RESET);
+printf(KCYN" \t\t\t\tGOOD BYE! \n\n"RESET);
 
 exit(0);
  }
