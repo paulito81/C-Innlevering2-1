@@ -1,97 +1,98 @@
 /* Innlevering 2 by Paul Hasfjord
-	ENCODER / DECODER 
+	ENCODER -DECODER A PROGRAM THAT CONVERT A TEKST INTO A NUMBER STRING FROM FILE.
+	+added feature switch menu, color and ascii art.
+	+automatic and manual feature
+
 */
 
+//IMPORT LIBRARY
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+//IMPORT FILES	
 #include "secretCoder.h"
 #include "secret.h"
 #include "fileList.h"
 #include "textColor.h"	
 
+/* 
+	PRINT OUT AND MENU-OPTIONS
+*/
+void printQuit();
+void mainMenu( char filename[], int menuChoice, int menuChoice2,  char inputFileName[], const char *modePtr, char *keyPtr, char inputConverter, char manualKey[]  );
+//STATIC CLOSE PARAMTER TO SWITCH
 static bool CLOSEDFILE = false;
 
+/*
+ READ AND CLOSE FILE
+*/
+// AUTOMATIC INPUT
+int readFromFile(  char filename[], const char *modePtr, char *keyPtr);
+bool closeFile( char *fileKey, FILE* filePtr );
+// MANUAL INPUT
+bool readInFromKeyboard( char inputFileName[], const char *modePtr, char manualKey[]  );
+int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr);
+bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr );
+
+// DECODER AND PARAMETERS
+int decoder(char *key,char *message, int counter);
+bool compareToChar( int xInput, int yInput );
+char alphabeticHigherCase(const char letter);
 bool alphabetic( const char letter);
 bool space( const char letter);
 int countLetter( const char string[]);
-
-// FILE READ AND CLOSE
-int readFromFile(  char filename[], const char *modePtr, char *keyPtr);
-bool closeFile( char *fileKey, FILE* filePtr );
-int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr);
-bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr );
-bool compareToChar( int xInput, int yInput );
-
-int decoder(char *key,char *message, int counter);
-char alphabeticHigherCase(const char letter);
 //char convertToArray(int aNumber, char character);
-//void mainMenu(char printOut[], char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *modePtr, char *keyPtr, char inputConverter, char manualKey[], char manualKeyPtr[]);
-void mainMenu( char filename[], int menuChoice, int menuChoice2,  char inputFileName[], const char *modePtr, char *keyPtr, char inputConverter, char manualKey[]  );
-bool readInFromKeyboard( char inputFileName[], const char *modePtr, char manualKey[]  );
 
-// PRINT OUT
-void printQuit();
 
 int main(void ){	
 
-		char manualKey[100];
+		//INIT MENU
         char filename[1000] = "";
-        char inputFileName[100];
-        //MENU
         int menuChoice =0, menuChoice2 =0;
+        char inputFileName[100];
+        char *modePtr = "r";
+        char *keyPtr = SECRETSTRING;
         char inputConverter ='0';
-
+		char manualKey[100] = "";
+  
         // RUN PROGRAM
-        mainMenu( filename, menuChoice, menuChoice2, inputFileName, "r", SECRETSTRING, inputConverter, manualKey );
+        mainMenu( filename, menuChoice, menuChoice2, inputFileName, modePtr, keyPtr, inputConverter, manualKey );
 		return 0;		
 }
-
 
 // MENU
 void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileName[], const char *modePtr, char *keyPtr, char inputConverter, char manualKey[] ){
                 
                 do{ //START OF MENU 1 CHOOSE MANUAL, AUTO OR QUIT
                 	
-                    printf(KCYN MENUL"\n\tVELKOMMEN TIL INNLEVERING 2.0\n\t<<'Kodeknekker'n'>>"RESET KYEL "\n"MENUL"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n\n"MENUL RESET );
-                    printf("\n[Tast 1]\tSkriv navet på filen du vil kryptere fra keyboard.\n");
-                    printf("[Tast 2]\tVelg en fil fra en ferdig liste.\n"MENUL );
-                    printf(KYEL"\n([Tast -1] for å 'avslutt programmet')\n:"RESET);
-                    scanf("%d", &menuChoice);
+                    printf( KCYN MENUL"\n\tVELKOMMEN TIL INNLEVERING 2.0\n\t<<'Kodeknekker'n'>>"RESET KYEL "\n"MENUL"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n\n"MENUL RESET );
+                    printf( "\n[Tast 1]\tSkriv navet på filen du vil kryptere fra keyboard.\n" );
+                    printf( "[Tast 2]\tVelg en fil fra en ferdig liste.\n"MENUL );
+                    printf( KYEL"\n([Tast -1] for å 'avslutt programmet')\n:"RESET );
+                    scanf( "%d", &menuChoice );
                     
                   
-                    switch( menuChoice) {
+                    switch( menuChoice) { // SWITCH MENU 1
 
-                    		case -1: 
+                    		case -1: // QUIT PROGRAM
                                 	printQuit();                        
-                                	break;                       	
-                    		case 0:
+                                	break; 
+
+                    		case 0:  //ERROR MESSAGE IF INPUT IS A INVALID INPUT
                     				inputConverter = menuChoice + '0';
                     				printf(KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%s' og vil nå avsluttes!\n" MENUL "\n"RESET, &inputConverter);
                     				exit(0);
                     				break;
+
                             //READ FILE FROM KEYBOARD INPUT    
                             case 1:
-
-                            		readInFromKeyboard( inputFileName, modePtr, manualKey);
-                                  /*  printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å ÅPNE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
-                                    scanf(" %s", inputFileName);
-                                    strcat(filename, inputFileName);
-
-                                    printf(KCYN"\nSKRIV INN KODEN DU VIL HA KRYPTERT."RESET "\n(F.eks tast:  Dette er en hemmlighet  +'Trykk Enter'  )\n:");
-									scanf("%s", manualKey);
-                                    strcat(manualKeyPtr, manualKey);
-                                
-                                    readFromFile(filename, "r", manualKeyPtr);
-                                    printf("%s\n", manualKeyPtr);
-                                   	free(manualKeyPtr);
-                                    */
+                            		readInFromKeyboard( inputFileName, modePtr, manualKey);                                
                                     break;
-                            case 2:
+                            case 2: //START OF MENU 2 GET-FILE FROM DEFINE-LIST
 
-                                    do{  //START OF MENU 2 GET FILE FROM LIST
+                                    do{  
                                         
                                         printf(KCYN LINE"\nVelg en av filene fra listen: \n(Tast inn et tall mellom [1-121] + Trykk 'Enter')\n"LINE RESET );
                              
@@ -217,18 +218,17 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
                                         printf("[Tast 120]: %s\n", FILENAME120 );
                                         printf("[Tast 121]: %s\n", FILENAME121 );
                                                                     
-                                        printf(KYEL"\n([Tast -1]: For å 'avslutte')\n\n:"RESET );
-                                        scanf(" %d", &menuChoice2);
+                                        printf( KYEL"\n([Tast -1]: For å 'avslutte')\n\n:"RESET );
+                                        scanf( "%d", &menuChoice2 );
                             
-                                        switch( menuChoice2 ) {
-
+                                        switch( menuChoice2 ) { //SWITCH MENU 2
 
 					                    		case -1: 
 					                                	printQuit();                        
 					                                	break;                       	
 					                    		case 0:
 					                    				inputConverter = menuChoice2 + '0';
-					                    				printf(KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding: '%s' og vil nå avsluttes!\n"MENUL "\n"RESET, &inputConverter);
+					                    				printf( KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding: '%s' og vil nå avsluttes!\n"MENUL "\n"RESET, &inputConverter );
 					                    				exit(0);
 					                    				break;                                       	
                                                 case 1:                                                                                                    
@@ -716,17 +716,17 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
                                                         readFromFile(filename, modePtr, keyPtr);
                                                         break;                                                                                   
                                                 default:                                                         
-                                                  		printf(KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [1-121])\n\n"RESET, menuChoice2);
+                                                  		printf( KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [1-121])\n\n"RESET, menuChoice2 );
                   	 									break;      
 
                                         } // END OF SWITCH MENU 2
                             
                                     }while( (menuChoice2 > 0 && menuChoice2 <=121) ||  isalpha(menuChoice2)  || !CLOSEDFILE);
-                                     //while( menuChoice2 >=1 && menuChoice2 <=121 && !isdigit(menuChoice2) );
+                                    
                                      break; // END OF CHOICE 2 IN MENU 1
 
                         default:                  
-		                        printf(KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [0-2])\n\n"RESET, menuChoice);   
+		                        printf( KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [0-2])\n\n"RESET, menuChoice );   
         		                break;
                     } // END OF SWITCH MENU 1
                     
@@ -736,27 +736,29 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
 }// END OF READFILE MENU        
 
 bool readInFromKeyboard( char inputFileName[], const char *modePtr, char manualKey[] ){
+	
 	char *manualKeyPtr = '\0';
-	manualKeyPtr = malloc(sizeof(char)*10000);
 	char *manualFilePtr = '\0';
-	manualFilePtr = malloc(sizeof(char)*10000);
+	
+	manualKeyPtr = malloc(sizeof(char) *1024);
+	manualFilePtr = malloc(sizeof(char) *1024);
 
-	if( manualKeyPtr == NULL){
+	if( manualKeyPtr == NULL ){
 		printf(KRED "Out of memory\n"RESET);
 		return false;
 	}
-
+	// INPUT FILE NAME
 	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å ÅPNE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
     scanf(" %s", inputFileName);
     manualFilePtr = strcat(manualFilePtr, inputFileName);
     printf("%s\n", manualFilePtr );
 
+    // INPUT KEY 
     printf(KCYN"\nSKRIV INN KODEN DU VIL HA KRYPTERT."RESET "\n(F.eks tast:  Dette er en hemmlighet  +'Trykk Enter'  )\n:");
     scanf(" %[^\n]", manualKey);
 	manualFilePtr = strcpy(manualKeyPtr, manualKey);
-
-
 	readManualFile(inputFileName, modePtr, manualFilePtr, manualKeyPtr ); 
+    
     return true;
 }
 
@@ -800,7 +802,7 @@ int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  c
 	    }while(true);
 	   
 	   	//RESET  MESSAGE
-	   // message[counter]='\0';
+	    message[counter]='\0';
 
 	   	// PRINT OUT TEST OF FILE ARRAY
 	    printf(KGRN"%s\n\n"RESET, message ); // change name to key
@@ -812,18 +814,59 @@ int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  c
 		decoder(manualKeyPtr ,message, counter);
 
 		// RESET KEY
-		//if( manualKeyPtr !=NULL ){
-		//	manualKeyPtr[0] = '\0';
-
-		//}
+		if( manualKeyPtr !=NULL ){
+			manualKeyPtr[0] = '\0';
+		}
 		
 		CLOSEDFILE = closeManualFile( message, filePtr, manualFilePtr, manualKeyPtr );
 		
 		return 0;
 }
+// CLOSE FILE
+bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr ) {
 
+	int inputValue;
+	
+	do {
+
+		printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': \n" );
+		scanf("%d", &inputValue);
+	
+		switch(inputValue){
+
+			case 0: 
+                    printf( KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%d' og vil nå avsluttes!\n" MENUL "\n"RESET, inputValue );
+                  	exit(0);
+                    break;
+			case 1:
+					CLOSEDFILE = false;
+					return false;
+					break;
+			case 2: 
+					free(message);
+					message = NULL;
+					free(manualKeyPtr);
+				    free(manualFilePtr);
+				 	manualKeyPtr = NULL;
+				 	manualFilePtr = NULL;
+					fclose (filePtr);
+					CLOSEDFILE = true;
+					printQuit();
+					return true;
+					break;
+			default:
+			 		printf( KRED"Error wrong key pressed: '%d'"RESET, inputValue );
+			 		break;
+		}
+
+
+	} while(  inputValue !=2 && !CLOSEDFILE && !isalpha(inputValue)  ); 
+
+	return false;
+}
 // ALPHABETIC CHECK IF INPUT-KEY CONTAINS LETTERS
 bool alphabetic( const char letter){
+
 	if( ( letter >= 'a' && letter <= 'z') || ( letter >= 'A' && letter <= 'Z'))
 		return true;
 	else
@@ -832,6 +875,7 @@ bool alphabetic( const char letter){
 
 // ALPHABETIC CHECK IF INPUT-KEY CONTAINS CAPTIAL LETTERS
 char alphabeticHigherCase( const char letter){
+
 	char tempLetter = '-';
 
 	if( letter >= 'A' && letter <= 'Z'){
@@ -842,6 +886,7 @@ char alphabeticHigherCase( const char letter){
 }
 
 bool space( const char letter){
+
 	if(( letter == '\0')){
 		return false;
 	}
@@ -895,48 +940,7 @@ bool closeFile( char *message, FILE* filePtr) {
 
 	return false;
 }
-// CLOSE FILE
-bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr ) {
 
-	int inputValue;
-	
-	do {
-
-		printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': \n" );
-		scanf("%d", &inputValue);
-	
-		switch(inputValue){
-
-			case 0: 
-                    printf(KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%d' og vil nå avsluttes!\n" MENUL "\n"RESET, inputValue);
-                  	exit(0);
-                    break;
-			case 1:
-					CLOSEDFILE = false;
-					return false;
-					break;
-			case 2: 
-					free(message);
-					message = NULL;
-					free(manualKeyPtr);
-				    free(manualFilePtr);
-				 	manualKeyPtr = NULL;
-				 	manualFilePtr = NULL;
-					fclose (filePtr);
-					CLOSEDFILE = true;
-					printQuit();
-					return true;
-					break;
-			default:
-			 		printf(KRED"Error wrong key pressed: '%d'"RESET, inputValue);
-			 		break;
-		}
-
-
-	} while(  inputValue !=2 && !CLOSEDFILE && !isalpha(inputValue)  ); 
-
-	return false;
-}
 
 // COMPARE TO CHAR SEE IF ITS A NEIGHBOR
 bool compareToChar( int xInput, int yInput ) {
