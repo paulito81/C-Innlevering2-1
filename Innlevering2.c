@@ -1,8 +1,7 @@
 /* Innlevering 2 by Paul Hasfjord
-	ENCODER -DECODER A PROGRAM THAT CONVERT A TEKST INTO A NUMBER STRING FROM FILE.
+	encodeMessage -DECODER A PROGRAM THAT CONVERT A TEKST INTO A NUMBER STRING FROM FILE.
 	+added feature switch menu, color and ascii art.
 	+automatic and manual feature
-
 */
 
 //IMPORT LIBRARY
@@ -16,47 +15,49 @@
 #include "secret.h"
 #include "fileList.h"
 #include "textColor.h"	
-
-/* 
-	PRINT OUT AND MENU-OPTIONS
-*/
-void printQuit();
+	
+//PRINT OUT AND MENU-OPTIONS
 void mainMenu( char filename[], int menuChoice, int menuChoice2,  char inputFileName[], const char *modePtr, char *keyPtr, char inputConverter, char manualKey[]  );
+void encodeMenu();
+bool quitProgram( char *fileKey, FILE* filePtr );
+void printQuit();
 //STATIC CLOSE PARAMTER TO SWITCH
 static bool CLOSEDFILE = false;
 
+//encodeMessage
+int encodeMessage(char *key,char *message, int counter, int dDistance );
+bool encodeFileManually(char inputFileName[], const char *modePtr, char *keyPtr );
 /*
  READ AND CLOSE FILE
 */
 // AUTOMATIC INPUT
 int readFromFile(  char filename[], const char *modePtr, char *keyPtr);
-bool closeFile( char *fileKey, FILE* filePtr );
+// WRITE TO FILE
+int writeToFile(char *messageArray);
+
 // MANUAL INPUT
-bool readInFromKeyboard( char inputFileName[], const char *modePtr, char manualKey[]  );
-int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr);
+bool decodeFileManually( char inputFileName[], const char *modePtr, char manualKey[]  );
+int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr, int dDistance);
 bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr );
 
 // DECODER AND PARAMETERS
-int decoder(char *key,char *message, int counter);
-bool compareToChar( int xInput, int yInput );
-char alphabeticHigherCase(const char letter);
+int decodeMessage(char *key,char *message, int counter, int d );
+bool compareTwoCharPtr( int xInput, int yInput );
 bool alphabetic( const char letter);
-bool space( const char letter);
 int countLetter( const char string[]);
-//char convertToArray(int aNumber, char character);
-
+int chooseDistanceD();
+int getCharPosition(char *fileArray, int arrayLength, char charTarget);
 
 int main(void ){	
 
 		//INIT MENU
         char filename[1000] = "";
-        int menuChoice =0, menuChoice2 =0;
-        char inputFileName[100];
+        int menuChoice = 0, menuChoice2 =0;
+        char inputFileName[100] ="";
         char *modePtr = "r";
         char *keyPtr = SECRETSTRING;
         char inputConverter ='0';
-		char manualKey[100] = "";
-  
+		char manualKey[100] = ""; 
         // RUN PROGRAM
         mainMenu( filename, menuChoice, menuChoice2, inputFileName, modePtr, keyPtr, inputConverter, manualKey );
 		return 0;		
@@ -67,7 +68,7 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
                 
                 do{ //START OF MENU 1 CHOOSE MANUAL, AUTO OR QUIT
                 	
-                    printf( KCYN MENUL"\n\tVELKOMMEN TIL INNLEVERING 2.0\n\t<<'Kodeknekker'n'>>"RESET KYEL "\n"MENUL"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n\n"MENUL RESET );
+                    printf( KBLU MENUL"\nVELKOMMEN TIL INNLEVERING 2.0 "KMAG"\t'Kodeknekker'n"RESET KBLU"\n\t[DECODING MENY]]\n"MENUL RESET KCYN"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n"MENUL RESET );
                     printf( "\n[Tast 1]\tSkriv navet på filen du vil kryptere fra keyboard.\n" );
                     printf( "[Tast 2]\tVelg en fil fra en ferdig liste.\n"MENUL );
                     printf( KYEL"\n([Tast -1] for å 'avslutt programmet')\n:"RESET );
@@ -88,13 +89,13 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
 
                             //READ FILE FROM KEYBOARD INPUT    
                             case 1:
-                            		readInFromKeyboard( inputFileName, modePtr, manualKey);                                
+                            		decodeFileManually( inputFileName, modePtr, manualKey);                                
                                     break;
                             case 2: //START OF MENU 2 GET-FILE FROM DEFINE-LIST
 
                                     do{  
                                         
-                                        printf(KCYN LINE"\nVelg en av filene fra listen: \n(Tast inn et tall mellom [1-121] + Trykk 'Enter')\n"LINE RESET );
+                                        printf(KCYN LINE"\nVelg en av filene fra listen: \n(Tast inn et tall mellom [1-121] + Trykk 'Enter')\n"LINE "\n"RESET );
                              
                                         printf("[Tast 1]: %s\n",   FILENAME1 );
                                         printf("[Tast 2]: %s\n",   FILENAME2 );
@@ -733,36 +734,46 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, char inputFileN
                     
                 }while( (menuChoice > 0 && menuChoice <=2) || isalpha(menuChoice) || !CLOSEDFILE); //END OF WHILE MENU 1    
                   
-}// END OF READFILE MENU        
+}
 
-bool readInFromKeyboard( char inputFileName[], const char *modePtr, char manualKey[] ){
-	
+// END OF READFILE MENU 
+bool decodeFileManually( char inputFileName[], const char *modePtr, char manualKey[] ){
+
+	int dDistance = 0;
 	char *manualKeyPtr = '\0';
 	char *manualFilePtr = '\0';
 	
-	manualKeyPtr = malloc(sizeof(char) *1024);
+	manualKeyPtr  = malloc(sizeof(char) *1024);
 	manualFilePtr = malloc(sizeof(char) *1024);
 
 	if( manualKeyPtr == NULL ){
 		printf(KRED "Out of memory\n"RESET);
 		return false;
 	}
+
 	// INPUT FILE NAME
-	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å ÅPNE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
+	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å DECODE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
     scanf(" %s", inputFileName);
     manualFilePtr = strcat(manualFilePtr, inputFileName);
     printf("%s\n", manualFilePtr );
 
     // INPUT KEY 
-    printf(KCYN"\nSKRIV INN KODEN DU VIL HA KRYPTERT."RESET "\n(F.eks tast:  Dette er en hemmlighet  +'Trykk Enter'  )\n:");
+    printf(KCYN"\nSKRIV INN TEKSTEN DU ØNSKER Å KRYPTERE."RESET "\n(F.eks tast:  Dette er en hemmlighet  +'Trykk Enter'  )\n:");
     scanf(" %[^\n]", manualKey);
 	manualFilePtr = strcpy(manualKeyPtr, manualKey);
-	readManualFile(inputFileName, modePtr, manualFilePtr, manualKeyPtr ); 
+
+	// INPUT D DISTANCE
+	printf(KCYN"\nSKRIV INN AVSTANDEN TIL '-d': ."RESET "\n(F.eks tast: '5' (betyr avstand d = 5) 'Trykk Enter'  )\n:");
+	scanf("%d", &dDistance);
+	printf("DU VALGTE d=%d\n", dDistance);
+	// INPUT INTO READFILE
+	readManualFile(inputFileName, modePtr, manualFilePtr, manualKeyPtr, dDistance ); 
     
     return true;
 }
 
-int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr){
+// READ FILE MANUAL
+int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr, int dDistance){
 
 		FILE* filePtr = NULL;
 		int index = 0;
@@ -804,14 +815,10 @@ int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  c
 	   	//RESET  MESSAGE
 	    message[counter]='\0';
 
-	   	// PRINT OUT TEST OF FILE ARRAY
-	    printf(KGRN"%s\n\n"RESET, message ); // change name to key
-
-	    // KEY MESSAGE PRINT OUT
-	    printf("%s\n", manualKeyPtr);
-
-		printf( KCYN"\n%s\n\n"RESET, manualKeyPtr );   // change name to message
-		decoder(manualKeyPtr ,message, counter);
+	   	// PRINT OUT FILTRET OUTPUT AND KEY
+	    printf(KMAG"\nFILTRET OUTPUT:\t" KGRN"%s\n"RESET, message ); 
+		printf( KMAG"\nKEY"RESET KCYN":  %s\n\n"RESET, manualKeyPtr ); 
+		decodeMessage(manualKeyPtr ,message, counter, dDistance);
 
 		// RESET KEY
 		if( manualKeyPtr !=NULL ){
@@ -822,27 +829,33 @@ int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  c
 		
 		return 0;
 }
-// CLOSE FILE
+
+// CLOSE FILE MANUAL
 bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr ) {
 
-	int inputValue;
+	int inputValue = 0 ;
 	
 	do {
 
-		printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': \n" );
+		printf(KCYN "\nQUIT MENU\nVELG ET AV TRE VALG\n" MENUL RESET "\n[Tast '1' + enter]\tTilbake til DECODING\n[Tast '2' + enter]\tGÅ TIL ECNODING\n"KYEL"[Tast '3' + enter]\tAVSLUTTE PROGRAM)"RESET"\n" KCYN MENUL "\n:" RESET);
 		scanf("%d", &inputValue);
 	
 		switch(inputValue){
 
 			case 0: 
-                    printf( KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%d' og vil nå avsluttes!\n" MENUL "\n"RESET, inputValue );
+                    printf( KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret en default feilmelding : '%d' og vil nå avsluttes!\n" MENUL "\n"RESET, inputValue );
                   	exit(0);
                     break;
 			case 1:
 					CLOSEDFILE = false;
 					return false;
 					break;
-			case 2: 
+			case 2:
+					CLOSEDFILE = false;
+					encodeMenu();
+					break;		
+			case 3: 
+					printQuit();
 					free(message);
 					message = NULL;
 					free(manualKeyPtr);
@@ -850,9 +863,7 @@ bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *m
 				 	manualKeyPtr = NULL;
 				 	manualFilePtr = NULL;
 					fclose (filePtr);
-					CLOSEDFILE = true;
-					printQuit();
-					return true;
+					CLOSEDFILE = true;				
 					break;
 			default:
 			 		printf( KRED"Error wrong key pressed: '%d'"RESET, inputValue );
@@ -860,11 +871,12 @@ bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *m
 		}
 
 
-	} while(  inputValue !=2 && !CLOSEDFILE && !isalpha(inputValue)  ); 
+	} while(  inputValue !=3 && !CLOSEDFILE && !isalpha(inputValue)  ); 
 
 	return false;
 }
-// ALPHABETIC CHECK IF INPUT-KEY CONTAINS LETTERS
+
+// ALPHABETIC CHECK IF INPUT-KEY CONTAINS lOWERCASE LETTERS
 bool alphabetic( const char letter){
 
 	if( ( letter >= 'a' && letter <= 'z') || ( letter >= 'A' && letter <= 'Z'))
@@ -873,29 +885,112 @@ bool alphabetic( const char letter){
 		return false;
 }
 
-// ALPHABETIC CHECK IF INPUT-KEY CONTAINS CAPTIAL LETTERS
-char alphabeticHigherCase( const char letter){
+// ALPHABETIC CHECK IF INPUT-KEY CONTAINS UPPERCASE LETTERS
+int alphabeticHigh( const char letter){
 
-	char tempLetter = '-';
-
-	if( letter >= 'A' && letter <= 'Z'){
-		tempLetter += letter;
-		return tempLetter;
-	}else
-		return letter;
-}
-
-bool space( const char letter){
-
-	if(( letter == '\0')){
-		return false;
+	if(  letter >= 'A' && letter <= 'Z'){
+	
+		 if( letter == 'A'){
+		 	return A_LETTER;
+		 }
+		 if( letter == 'B'){
+		 	return B_LETTER;
+		 }
+		 if( letter == 'C'){
+		 	return C_LETTER;
+		 }
+		 if( letter == 'D'){
+		 	return D_LETTER;
+		 }
+		 if( letter == 'E'){
+		 	return E_LETTER;
+		 }
+		 if( letter == 'F'){
+		 	return F_LETTER;
+		 }
+		 if( letter == 'G'){
+		 	return G_LETTER;
+		 }
+		 if( letter == 'H'){
+		 	return H_LETTER;
+		 }
+		 if( letter == 'I'){
+		 	return I_LETTER;
+		 }
+		 if( letter == 'J'){
+		 	return J_LETTER;
+		 }
+		 if( letter == 'K'){
+		 	return K_LETTER;
+		 }
+		 if( letter == 'L'){
+		 	return L_LETTER;
+		 }
+		 if( letter == 'M'){
+		 	return M_LETTER;
+		 }
+		 if( letter == 'N'){
+		 	return N_LETTER;
+		 }
+		 if( letter == 'O'){
+		 	return O_LETTER;
+		 }
+		 if( letter == 'P'){
+		 	return P_LETTER;
+		 }
+		 if( letter == 'Q'){
+		 	return Q_LETTER;
+		 }
+		 if( letter == 'R'){
+		 	return R_LETTER;
+		 }
+		 if( letter == 'S'){
+		 	return S_LETTER;
+		 }
+		 if( letter == 'T'){
+		 	return T_LETTER;
+		 }
+		 if( letter == 'U'){
+		 	return U_LETTER;
+		 }
+		 if( letter == 'V'){
+		 	return V_LETTER;
+		 }
+		 if( letter == 'W'){
+		 	return W_LETTER;
+		 }
+		 if( letter == 'X'){
+		 	return X_LETTER;
+		 }
+		 if( letter == 'Y'){
+		 	return Y_LETTER;
+		 }
+		 if( letter == 'Z'){
+		 	return Z_LETTER;
+		 }
+		 else
+		 	return 1;
 	}
 	else
-		return true;
+		return 0;
+}
+
+// COMPARE TO CHAR SEE IF ITS A NEIGHBOR
+bool compareTwoCharPtr( int xInput, int yInput ) {
+
+	if(xInput != yInput ){
+		printf("TRUE  y= %.3d\n",  yInput );
+		return true;	
+	}	
+	else
+		printf("FALSE x= %.3d ", xInput  );
+		return false;
 }
 
 // GET A CHARACTER WITH ITS POSITION IN THE ARRAY
 int getCharPosition(char *fileArray, int arrayLength, char charTarget){
+	
+	char newCharTarget ='0';
 
 	for( int i = 0 ; i < arrayLength; i++){
 
@@ -903,113 +998,239 @@ int getCharPosition(char *fileArray, int arrayLength, char charTarget){
 			return i;
 		}
 	}
-	return -1;
-}
-
-// CLOSE FILE
-bool closeFile( char *message, FILE* filePtr) {
-
-	int inputValue;
 	
-	do {
+	newCharTarget = tolower(charTarget);
+	for(int j = 0 ; j < arrayLength; j++){
 
-		printf(KYEL"\nØnsker du og fortsette programmet?\n" RESET "JA = '1' \tNEI = '2': " );
-		scanf("%d", &inputValue);
-	
-		switch(inputValue){
-
-			case 1:
-					CLOSEDFILE = false;
-					return false;
-					break;
-			case 2: 
-					free(message);
-					message = NULL;
-					fclose (filePtr);
-					CLOSEDFILE = true;
-					printQuit();
-					return true;
-					break;
-			default:
-			 		printf(KRED"Error wrong key pressed: '%d'"RESET, inputValue);
-			 		break;
+		if(fileArray[j] == newCharTarget ){
+			j = j*UPPERCASE;
+			return j;
 		}
-
-
-	} while(  inputValue !=2 && !CLOSEDFILE   ); 
-
-	return false;
-}
-
-
-// COMPARE TO CHAR SEE IF ITS A NEIGHBOR
-bool compareToChar( int xInput, int yInput ) {
-
-	if(xInput != yInput  )
-		return true;			
-	else
-		return false;
-		
-}
-
-// CONVERT A CHAR TO INT WITH MINUS
-char convertToArray(int aNumber, char character){
-	
-		character = aNumber + '0';
-		return character;
-
+	}
+	return newCharTarget;
 }
 
 // DECODE A MESSAGE WITH A KEY AND LOOP THROUGH ALL CHECKS
-int decoder(char *key, char *message, int counter) {
+int decodeMessage(char *key, char *message, int counter, int dDistance) {
+
+		if(dDistance == 0 || dDistance == 1){
+			printf( KRED"Error D distance '%d' is to low!\n"RESET, dDistance);
+		    return -1;		
+		}
 
 		char *messageArray = '\0';
 		char bufferTempValue[64];
-		messageArray = malloc( sizeof(char)*10000 );
+		int charPos = 0;
+		messageArray = malloc( sizeof(char)*1000 );
 
 		if( key == NULL ){
-			printf(KRED"Error keyFile was not found, or where unable to open.\n" RESET);
+			printf( KRED"Error keyFile was not found, or where unable to open.\n" RESET);
 		    return -1;
 		}
 
-		printf(KMAG "DIN KRYPTERTE KODE:\n"LINE "\n" RESET);
 		for(unsigned int j = 0; j < strlen(key); j++) {
 
-			if( alphabetic (key[j] )){
-				
-				int charPos = getCharPosition(message, counter, key[j]);
-				
-				sprintf(bufferTempValue, "[%d]", charPos );
-			//	printf("%c", key[j] );  
-			//	printf("%s\n", bufferTempValue );
-				messageArray = strcat(messageArray, bufferTempValue);
-			//	printf("%s\n", messageArray );
-
-				if( compareToChar(key[j], key[j+1] )){
-
-				//	printf("[%d] ", charPos);
-				//	str[j] = convertToArray(charPos, test[j] );
-				//	printf("%c\n", str[j]);
-				}
-			}else{
+			if( alphabetic (key[j]) ) {
+					charPos = getCharPosition( message, counter, key[j] );		
+					sprintf( bufferTempValue, "[%d]", charPos );
+					messageArray = strcat( messageArray, bufferTempValue );				
+			}
+			else{
 				sprintf(bufferTempValue, "%c", key[j] );
 				messageArray = strcat(messageArray, bufferTempValue);
-				//printf("%c", key[j] );  
-				//printf("%s\n", bufferTempValue );
-			//	printf("%s\n", messageArray );
-
 			}
 		}
-		printf("%s\n", messageArray );
-		printf(KMAG LINE RESET);
+		printf(LINE"\n" KMAG"DIN KRYPTERTE KODE:  "RESET "%s\n" LINE "\n",messageArray );
+		//writeToFile(messageArray);    //TODO READ FROM FILE
 
-		free(messageArray);
+	    dDistance = 0;
+
 		return 0;
-
 }
-//READ FROM A FILE WITH INPUT modePtr AND KEY
+
+//ENCODING
+void encodeMenu(){
+	///INIT
+	int  menuChoice =0;
+	char inputConverter = '0';
+	char filename[1000] = "";
+	char *modePtr = "r";
+    char *keyPtr = "";
+ 			
+ 			do{ //START OF ENCODER MENU -CHOOSE BETWEEN MANUAL, AUTO, QUIT.
+                	
+                    printf( KBLU MENUL"\n\t[VELKOMMEN TIL ENCODING MENY]\n"MENUL RESET KCYN"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-2] +Trykk 'Enter')\n"MENUL RESET );
+                    printf( "\n[Tast 1]\tSkriv navet på filen du ønsker å encode fra keyboard.\n" );
+                    printf( "[Tast 2]\tAutomatisk innhenting av fil\n"MENUL );
+                    printf( KYEL"\n([Tast -1] for å 'avslutt programmet')\n:"RESET );
+                    scanf( "%d", &menuChoice );
+
+                    switch(menuChoice){
+
+	                 	 case -1: // QUIT PROGRAM
+	                                	printQuit();                        
+	                                	break; 
+	                     case 0:  // ERROR MESSAGE IF INPUT IS A INVALID INPUT
+	                    				inputConverter = menuChoice + '0';
+	                    				printf(KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding : '%s' og vil nå avsluttes!\n" MENUL "\n"RESET, &inputConverter);
+	                    				exit(0);
+	                    				break;
+	                      case 1: // READ FILE FROM KEYBOARD INPUT    
+	                            		encodeFileManually(filename, modePtr, keyPtr);                                
+                                    	break;
+                          case 2: // READ IN FILE AUTOMATIC
+                          				menuChoice = 0;
+                                        printf(KCYN LINE"\n[HENTER INN FIL]:\n(Trykk '1' for %s +Enter')", SECRETFILE "\n:"LINE RESET );
+                                        scanf( "%d", &menuChoice );	
+                                     	if( menuChoice == 1 ) {
+                                           strcat(filename, SECRETFILE);
+                                           readFromFile(filename, modePtr, SECRETSTRING);
+                                     	}else                                                                                                             
+                                      	break;		   
+                         default:  // DEFAULT MESSAGE                                                  
+                                        printf( KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [1-2])\n\n"RESET, menuChoice );
+                  	 					break;                	       
+                  	 }
+  			 }while( (menuChoice > 0 && menuChoice <=2) ||  isalpha(menuChoice)  || !CLOSEDFILE);
+                                    
+}
+
+bool encodeFileManually(char inputFileName[], const char *modePtr, char *keyPtr ){
+	
+	int dDistance = 0;
+	char manualKey[100] = ""; 
+		 modePtr = NULL;
+	char *manualFilePtr = '\0';
+	
+	keyPtr  = malloc(sizeof(char) *1024);
+	manualFilePtr = malloc(sizeof(char) *1024);
+
+	if( keyPtr == NULL ){
+		printf(KRED "Out of memory\n"RESET);
+		return false;
+	}
+
+	// INPUT FILE NAME
+	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å BRUKE TIL Å ENCODE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
+    scanf(" %s", inputFileName);
+    manualFilePtr = strcat(manualFilePtr, inputFileName);
+    printf("%s\n", manualFilePtr );
+
+    // INPUT KEY 
+    printf(KCYN"\nSKRIV INN TEKSTEN DU ØNSKER Å ENCODE."RESET "\n(F.eks tast:  secret.txt  +'Trykk Enter'  )\n:");
+    scanf(" %[^\n]", manualKey);
+	keyPtr = strcpy(keyPtr, manualKey);
+
+	// INPUT D DISTANCE
+	printf(KCYN"\nSKRIV INN AVSTANDEN TIL '-d': ."RESET "\n(F.eks tast: '5' (betyr avstand d = 5) 'Trykk Enter'  )\n:");
+	scanf("%d", &dDistance);
+	printf("DU VALGTE d=%d\n", dDistance);
+	// INPUT INTO READFILE
+	readManualFile(inputFileName, modePtr, manualFilePtr, keyPtr, dDistance );   
+	//TODO!!!
+    
+    return true;
+}
+
+int encodeMessage(char *key,char *message, int counter, int dDistance ){
+
+	if(dDistance == 0 || dDistance == 1){
+			printf( KRED"Error D distance '%d' is to low!\n"RESET, dDistance);
+		    return -1;		
+		}
+
+		char *messageArray = '\0';
+		char bufferTempValue[64];
+		int charPos = 0;
+		messageArray = malloc( sizeof(char)*1000 );
+
+		if( key == NULL ){
+			printf( KRED"Error keyFile was not found, or where unable to open.\n" RESET);
+		    return -1;
+		}
+
+		for(unsigned int j = 0; j < strlen(key); j++) {
+
+			if( alphabetic (key[j]) ) {
+					charPos = getCharPosition( message, counter, key[j] );		
+					sprintf( bufferTempValue, "[%d]", charPos );
+					messageArray = strcat( messageArray, bufferTempValue );				
+			}
+			else{
+				sprintf(bufferTempValue, "%c", key[j] );
+				messageArray = strcat(messageArray, bufferTempValue);
+			}
+		}
+		printf(LINE"\n" KMAG"DIN KRYPTERTE KODE:  "RESET "%s\n" LINE "\n",messageArray );
+		writeToFile(messageArray);
+
+	    dDistance = 0;
+
+		return 0;
+		// TODO!!
+	return 0;
+}
+
+int writeToFile(char *messageArray ){
+		FILE *filePtr = NULL;
+		filePtr = fopen(SECRETFILE, "w");
+
+		if( messageArray == NULL){
+			printf( KRED"Error encryptet code was not found, or where unable to open.\n" RESET);
+		    return -1;
+		}
+	
+		if( messageArray != NULL){
+			fprintf(filePtr,"%s", messageArray);
+			printf(KMAG"<<<SUCCESSFULL COPY TEXT TO FILE>>\n" RESET);
+			fclose(filePtr);
+			messageArray =NULL;
+			messageArray = '\0';
+		}
+		return 0;
+}
+
+// INSERT D DISTANCE
+int chooseDistanceD(){
+
+		int dDistance = 0;
+		printf( KCYN MENUL "\nSKRIV INN AVSTANDEN TIL '-d':\n[Velg mellom]:" RESET" \nLow: d=2\t(Trykk '1')\nMed: d=4\t(Trykk '2')\nHig: d=6\t(Trykk '3')\n" KYEL MENUL "\n(Trykk '-1' for å avslutte programmet)\n" RESET"\n:");
+		scanf("%d", &dDistance);
+
+		do{
+			switch(dDistance)
+			{	
+				case -1:
+					printQuit();                        
+					break;        
+				case 0:
+					printf( KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret default feilmelding: '%d' og vil nå avsluttes!\n"MENUL "\n"RESET, dDistance );
+					exit(0);
+					break;
+				case 1:
+					dDistance = DISTANCEL;
+					break;
+				case 2:
+					dDistance = DISTANCEM;
+					break;
+				case 3:
+					dDistance = DISTANCEL;
+					break;
+				default:
+					printf(KRED "Error d is incorrect '%d' try again...\n"RESET, dDistance );
+					break;
+			}
+		}while( (dDistance > 0 && dDistance <=3) || isalpha(dDistance) );
+
+		return dDistance;
+}
+
+//READ FROM A FILE 'FILENAME, MODE, KEY'
 int readFromFile( char filename[], const char *modePtr, char *key){
 
+		int dDistance = 0;
+		dDistance = chooseDistanceD();
+		printf("%d\n", dDistance);
 		printf("%s\n", filename );
 
 		FILE* filePtr = NULL;
@@ -1042,7 +1263,6 @@ int readFromFile( char filename[], const char *modePtr, char *key){
 	   			}
 	   			message[counter++] = tolower(index);
 	   		}
-
 	   		if( feof(filePtr) ){
 	   			break;
 	   		}
@@ -1053,26 +1273,63 @@ int readFromFile( char filename[], const char *modePtr, char *key){
 	    message[counter]='\0';
 
 	   	// PRINT OUT TEST OF FILE ARRAY
-	    printf(KGRN"%s\n\n"RESET, message ); // change name to key
+	    printf(KMAG"\nFILTRET OUTPUT:\t"RESET KGRN"%s\n\n"RESET, message ); 
 
 	    // KEY MESSAGE PRINT OUT
-		printf(KCYN"\n%s\n\n"RESET,key );   // change name to message
-		decoder(key ,message, counter);
+		printf(KMAG"KEY:  "RESET KCYN"%s\n\n"RESET,key );  
+		decodeMessage(key ,message, counter, dDistance);
 
-		// RESET KEY
-	//	if( key !=NULL){
-	//		key[0] = '\0';
-	//	}
-		CLOSEDFILE = closeFile(message, filePtr);
-		//closeFile(message, filePtr);
+		// CLOSE PROGRAM MENU
+		CLOSEDFILE = quitProgram(message, filePtr);
 		return 0;
+}
+
+// CLOSE FILE
+bool quitProgram( char *message, FILE* filePtr) {
+
+	int inputValue =0;
+	
+	do {
+
+		printf(KCYN "\n[QUIT MENU]\nVELG ET AV TRE VALG\n" MENUL RESET "\n[Tast '1' + enter]\tTilbake til DECODING\n[Tast '2' + enter]\tGÅ TIL ENCODING\n"KYEL"[Tast '3' + enter]\tAVSLUTTE PROGRAM)"RESET"\n" KCYN MENUL "\n:" RESET);
+		scanf("%d", &inputValue);
+	
+		switch(inputValue){
+
+			case 0: 
+                    printf( KRED MENUL"\nVerdien du tastet inn har skapt en feil.\nProgrammet har registret en default feilmelding : '%d' og vil nå avsluttes!\n" MENUL "\n"RESET, inputValue );
+                  	exit(0);
+                    break;
+			case 1:
+					CLOSEDFILE = false;
+					return false;
+					break;
+			case 2:
+					CLOSEDFILE = false;
+					encodeMenu();
+					break;
+			case 3: 
+					free(message);
+					message = NULL;
+					fclose (filePtr);
+					CLOSEDFILE = true;
+					printQuit();
+					return true;
+					break;
+			default:
+			 		printf(KRED"Error wrong key pressed: '%d'"RESET, inputValue);
+			 		break;
+		}
+
+	} while(  inputValue !=2 && !CLOSEDFILE   ); 
+
+	return false;
 }
 
 // PRINT OUT ASCII ART
 void printQuit() {   
 printf(KCYN"\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n"RESET);
 unsigned int sleep();
-
 printf(KYEL"                                                                 \n");
 printf("                                                                 \n");
 printf("                               : @+@                             \n");           
@@ -1149,33 +1406,5 @@ printf(KCYN" \t\t\t\tØNSKER DEG EN RIKTIG GOD KVELD! \n\n"RESET);
 
 exit(0);
  }
-/*    
-	   
-	   
-		char* decodedMessage;
-		int status;
-		
-		decodedMessage = decode("secretCoder.txt", FILENAME1, 1);
-		status = decode("secretCoder.txt", FILENAME1, decodedMessage);
-	
-		TODO Encoding and Decoding reverse process 
-		-> convert code symbols back into understable form.
 
-		The message can be decode only with the help of a key 
-		which is assumed to be known at both ends.
-		Only the holder of the key is able to decode the true message.
-	
-		The idea is to use your code to create a library and distribute
-		the library to your friends.
-
-		Your friends can try to use your library against their code to verify the standard functionality
-		In the final edition , include the names of the library creators you tested your code against.
-
-		Develop interface that is linked with the library
-
-		 example usage :
-		[1] decodedMessage = decode("myCode.txt", "hotelCalifornia.txt", &status);
-		[2] status = decode("myCode.txt", "hotelCalifornia.txt", decodedMessage);
-
-	*/
 
