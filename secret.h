@@ -28,3 +28,4 @@
 #define Z_LETTER -122
 
 #define UPPERCASE -1
+#define BLANK ""

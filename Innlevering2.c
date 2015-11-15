@@ -23,23 +23,22 @@ void decoderMenu(char filename[], int menuChoice, int menuChoice2, const char *m
 void encoderMenu(char filename[], int menuChoice, int menuChoice2, const char *modePtr, char *keyPtr, char inputConverter);
 bool quitProgram( char *fileKey, FILE* filePtr );
 void printQuit();
-//STATIC CLOSE PARAMTER TO SWITCH
 
 //encodeMessage
-int encodeMessage(char *key,char *message, int counter, int dDistance );
-bool encodeFileManually(char inputFileName[], const char *modePtr, char *keyPtr );
-/*
- READ AND CLOSE FILE
-*/
-// AUTOMATIC INPUT
+bool encodeFileManually();
+int encodeMessage(char *encodedKey, char *crackFile, int counter, int dDistance );
+int readManualFileEncode(char encodedFileName[], char crackFileName[], const char *modePtr,  int dDistance);
+
+// READ FILE FROM LIST
 int readFromFile(  char filename[], const char *modePtr, char *keyPtr);
+int readFromFile2( char filename[], const char *modePtr, char *key);
 // WRITE TO FILE
 int writeToFile(char *messageArray);
 
 // MANUAL INPUT
-bool decodeFileManually( char inputFileName[], const char *modePtr, char manualKey[]  );
-int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr, int dDistance);
-bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr );
+bool decodeFileManually();
+int readManualFileDecode(char filename[], const char *modePtr, char *manualKeyPtr, int dDistance);
+bool closeManualFile( char *message, FILE* filePtr );
 
 // DECODER AND PARAMETERS
 int decodeMessage(char *key,char *message, int counter, int d );
@@ -48,22 +47,21 @@ bool alphabetic( const char letter);
 int countLetter( const char string[]);
 int chooseDistanceD();
 int getCharPosition(char *fileArray, int arrayLength, char charTarget);
+bool isANumber( const int number);
 
 int main(void ){	
 
 		//INIT MENU
         char filename[1000] = "";
         int menuChoice = 0, menuChoice2 =0;
-       // char inputFileName[100] ="";
         char *modePtr = "r";
         char *keyPtr = SECRETSTRING;
         char inputConverter ='0';
-		//char manualKey[100] = ""; 
+
         // RUN PROGRAM
         mainMenu( filename, menuChoice, menuChoice2, modePtr, keyPtr, inputConverter );
 		return 0;		
 }
-
 
 // MENU
 void mainMenu( char filename[], int menuChoice, int menuChoice2, const char *modePtr, char *keyPtr, char inputConverter ){
@@ -73,7 +71,7 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, const char *mod
                     printf( KBLU MENUL"\nVELKOMMEN TIL INNLEVERING 2.0 "KMAG"\t'Kodeknekker'n"RESET KBLU"\n\t[MAIN MENY]]\n"MENUL RESET KCYN"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n"MENUL RESET );
                     printf( "\n[Tast 1]\tDecoding Menu\n" );
                     printf( "[Tast 2]\tEncoding Menu\n" );
-                    printf(KYEL "\n[Tast 3]\tAvslutte programmet\n"MENUL"\n:" RESET);
+                    printf(KYEL "[Tast 3]\tAvslutte programmet\n"MENUL"\n:" RESET);
 
                     scanf( "%d", &menuChoice );
                
@@ -107,10 +105,10 @@ void mainMenu( char filename[], int menuChoice, int menuChoice2, const char *mod
 void decoderMenu(char filename[], int menuChoice, int menuChoice2, const char *modePtr, char *keyPtr, char inputConverter ){
 		 
     	 do{ //START OF DECODING MENU
-				 	printf( KBLU MENUL"\nVELKOMMEN TIL DECODING MENY"KMAG"\t'kryptering'"RESET KBLU"\n\t[MAIN MENY]]\n"MENUL RESET KCYN"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n"MENUL RESET );
+				 	printf( KGRN"\n"MENUL"\nVELKOMMEN TIL DECODING MENY"KMAG"\n\t'kryptering'"RESET KGRN"\n"MENUL RESET KCYN"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n"MENUL RESET );
 			        printf( "\n[Tast 1]\tSkriv inn navn på fil manuelt fra keyboard\n" );
 			        printf( "[Tast 2]\tHent en fil fra en ferdig liste\n" );
-			        printf(KYEL "\n[Tast 3]\tAvslutte programmet\n"MENUL"\n:" RESET);
+			        printf(KYEL "[Tast 3]\tAvslutte programmet\n"MENUL"\n:" RESET);
 										   
                     scanf( "%d", &menuChoice );
 
@@ -122,13 +120,13 @@ void decoderMenu(char filename[], int menuChoice, int menuChoice2, const char *m
                     				exit(0);
                     				break;
                             case 1: //READ FILE FROM KEYBOARD INPUT   
-                            		decodeFileManually( filename, modePtr, keyPtr);                                
+                            		decodeFileManually();                                
                                     break;
                             case 2: //START OF MENU 2 AUTOMATIC DECODER
 
                                     do{  
                                         
-                                        printf(KCYN LINE"\nVelg en av filene fra listen: \n(Tast inn et tall mellom [1-121] + Trykk 'Enter')\n"LINE "\n"RESET );
+                                        printf(KGRN LINE"\nVelg en av filene fra listen: \n(Tast inn et tall mellom [1-121] + Trykk 'Enter')\n"LINE "\n"RESET );
                              
                                         printf("[Tast 1]:  %s\n",   FILENAME1 );
                                         printf("[Tast 2]:  %s\n",   FILENAME2 );
@@ -758,6 +756,9 @@ void decoderMenu(char filename[], int menuChoice, int menuChoice2, const char *m
                                     }while( (menuChoice2 > 0 && menuChoice2 <=121) ||  isalpha(menuChoice2)  || !CLOSEDFILE);
                                     
                                      break; // END OF WHILE - AUTOMATIC DECODER MENU
+                          case 3:
+                        		printQuit();
+                        		break;          
 
                         default:                  
 		                        printf( KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [0-2])\n\n"RESET, menuChoice );   
@@ -773,10 +774,10 @@ void decoderMenu(char filename[], int menuChoice, int menuChoice2, const char *m
 void encoderMenu(char filename[], int menuChoice, int menuChoice2, const char *modePtr, char *keyPtr, char inputConverter){
 		 
     	 do{ //START OF DECODING MENU
-				 	printf( KBLU MENUL"\nVELKOMMEN TIL ENCODER MENY"KMAG"\t'Dekryptering'"RESET KBLU"\n\t[MAIN MENY]]\n"MENUL RESET KCYN"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n"MENUL RESET );
+				 	printf( KCYN"\n"MENUL"\nVELKOMMEN TIL ENCODING MENY"KMAG"\t\n'Dekryptering'"RESET KCYN"\n"MENUL RESET KBLU"\nVelg et av valgene under fra menyen:\n(Tast inn et tall mellom [1-3] +Trykk 'Enter')\n"MENUL RESET );
 			        printf( "\n[Tast 1]\tSkriv inn navn på fil manuelt fra keyboard\n" );
-			        printf( "\n[Tast 2]\tHent en fil fra en ferdig liste\n\n" );
-			        printf(KYEL "\n[Tast 3]\tAvslutte programmet" RESET);
+			        printf( "[Tast 2]\tHent en fil fra en ferdig liste\n" );
+			        printf(KYEL "[Tast 3]\tAvslutte programmet\n"MENUL"\n:" RESET);
 										   
                     scanf( "%d", &menuChoice );
 
@@ -788,7 +789,7 @@ void encoderMenu(char filename[], int menuChoice, int menuChoice2, const char *m
                     				exit(0);
                     				break;
                             case 1: //READ FILE FROM KEYBOARD INPUT   
-                            		encodeFileManually(filename , modePtr, keyPtr);                              
+                            		encodeFileManually();                              
                                     break;
                             case 2: //START OF MENU 2 AUTOMATIC ENCODER
 
@@ -932,36 +933,36 @@ void encoderMenu(char filename[], int menuChoice, int menuChoice2, const char *m
 					                    				exit(0);
 					                    				break;                                       	
                                                 case 1:                                                                                                    
-                                                        strcat(filename, FILENAME1);
-                                                        readFromFile(filename, modePtr, keyPtr);
+                                                        strcat(filename, SECRETFILE);
+                                                        readFromFile2(filename, modePtr, keyPtr);
                                                         break;
                                                 case 2:
-                                                        strcat(filename, FILENAME2);
-                                                        readFromFile(filename, modePtr, keyPtr);    
+                                                        strcat(filename, SECRETFILE);
+                                                        readFromFile2(filename, modePtr, keyPtr);    
                                                         break;                                                  
                                                 case 3:
-                                                        strcat(filename, FILENAME3);
-                                                        readFromFile(filename, modePtr, keyPtr);  
+                                                        strcat(filename, SECRETFILE);
+                                                        readFromFile2(filename, modePtr, keyPtr);  
                                                         break;
                                                 case 4:
-                                                        strcat(filename, FILENAME4);
-                                                        readFromFile(filename, modePtr, keyPtr);  
+                                                        strcat(filename, SECRETFILE);
+                                                        readFromFile2(filename, modePtr, keyPtr);  
                                                         break;
  												case 5:
-                                                        strcat(filename, FILENAME5);
-                                                        readFromFile(filename, modePtr, keyPtr);
+                                                        strcat(filename, SECRETFILE);
+                                                        readFromFile2(filename, modePtr, keyPtr);
                                                         break;
                                                 case 6:
-                                                        strcat(filename, FILENAME6);
-                                                        readFromFile(filename, modePtr, keyPtr);
+                                                        strcat(filename, SECRETFILE);
+                                                        readFromFile2(filename, modePtr, keyPtr);
                                                         break;                               
                                                 case 7:
-                                                        strcat(filename, FILENAME7);
-                                                        readFromFile(filename, modePtr, keyPtr);
+                                                        strcat(filename, SECRETFILE);
+                                                        readFromFile2(filename, modePtr, keyPtr);
                                                         break;
                                                 case 8:
-                                                        strcat(filename, FILENAME8);
-                                                        readFromFile(filename, modePtr, keyPtr);
+                                                        strcat(filename, SECRETFILE);
+                                                        readFromFile2(filename, modePtr, keyPtr);
                                                         break;
                                                 case 9:
                                                         strcat(filename, FILENAME9);
@@ -1424,7 +1425,10 @@ void encoderMenu(char filename[], int menuChoice, int menuChoice2, const char *m
                                     }while( (menuChoice2 > 0 && menuChoice2 <=121) ||  isalpha(menuChoice2)  || !CLOSEDFILE);
                                     
                                      break; // END OF WHILE -AUTOMATIC ENCODER MENU
-
+                        case 3:
+                        		printQuit();
+                        		break;       
+                        		             	
                         default:                  
 		                        printf( KRED"En ugyldig inputverdi '%d' har blitt registret.\n(Velg en verdi mellom [0-2])\n\n"RESET, menuChoice );   
         		                break;
@@ -1435,45 +1439,171 @@ void encoderMenu(char filename[], int menuChoice, int menuChoice2, const char *m
                   
 }
 
-// END OF READFILE MENU 
-bool decodeFileManually( char inputFileName[], const char *modePtr, char manualKey[] ){
-
+bool encodeFileManually( ){
+	//INIT
 	int dDistance = 0;
-	char *manualKeyPtr = '\0';
-	char *manualFilePtr = '\0';
-	
-	manualKeyPtr  = malloc(sizeof(char) *1024);
-	manualFilePtr = malloc(sizeof(char) *1024);
-
-	if( manualKeyPtr == NULL ){
-		printf(KRED "Out of memory\n"RESET);
-		return false;
-	}
+	const char *modePtr ="r";
+	//char manualKey[100] ="";
+	char encodedFileName[100] = "";
+	char crackFileName[100] = "";
 
 	// INPUT FILE NAME
-	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å DECODE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
-    scanf(" %s", inputFileName);
-    manualFilePtr = strcat(manualFilePtr, inputFileName);
-    printf("%s\n", manualFilePtr );
+	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å ENCODE."RESET "\n(F.eks tast:  secret.txt   +'Trykk Enter'  )\n:");
+    scanf(" %s", encodedFileName);
 
-    // INPUT KEY 
-    printf(KCYN"\nSKRIV INN TEKSTEN DU ØNSKER Å KRYPTERE."RESET "\n(F.eks tast:  Dette er en hemmlighet  +'Trykk Enter'  )\n:");
-    scanf(" %[^\n]", manualKey);
-	manualFilePtr = strcpy(manualKeyPtr, manualKey);
+	// INPUT FILE NAME FOR TARGET CRACKING
+	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU VIL PRØVE Å CRACKE KODEN MED."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
+    scanf(" %s", crackFileName);
 
 	// INPUT D DISTANCE
-	printf(KCYN"\nSKRIV INN AVSTANDEN TIL '-d': ."RESET "\n(F.eks tast: '5' (betyr avstand d = 5) 'Trykk Enter'  )\n:");
+	printf(KCYN"\nSKRIV INN HVA DUTROR DISTANSEN TIL D ER."RESET "\n(F.eks tast: '5' (betyr avstand d = 5) 'Trykk Enter'  )\n:");
 	scanf("%d", &dDistance);
-	printf("DU VALGTE d=%d\n", dDistance);
+	printf("DU VALGTE DISTANSEN d=%d\n", dDistance);
+	
 	// INPUT INTO READFILE
-	readManualFile(inputFileName, modePtr, manualFilePtr, manualKeyPtr, dDistance ); 
+	readManualFileEncode( encodedFileName, crackFileName, modePtr, dDistance); 
     
     return true;
 }
 
 // READ FILE MANUAL
-int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  char *manualKeyPtr, int dDistance){
+int readManualFileEncode(char encodedFileName[], char crackFileName[], const char *modePtr,  int dDistance){
+		
+		FILE* filePtr = NULL;
+		char bufferTempValue[500];
+		char *fileBuffer ;
+		fileBuffer = malloc(sizeof(char)*100);
 
+		filePtr = fopen(encodedFileName, modePtr);
+
+		if(filePtr == NULL ){
+			encodedFileName[0] = '\0';
+			printf(KRED "Error filename: '%s' does not exist, or could not be opesn...\n"RESET, encodedFileName );
+		    return (-1);
+		}
+		//while( ( ch = fgetc(filePtr) ) !=EOF )
+		//	printf("%c, ", ch);
+		
+		fgets(bufferTempValue, 1000, (FILE*) filePtr);
+		fileBuffer = strcpy(fileBuffer, bufferTempValue);
+		printf("%s\n", fileBuffer);
+
+		FILE* filePtr2 = NULL;
+		int crackIndex = 0;
+		
+		char *crackPtr = malloc(sizeof(char)*2);
+		int crackLength = 2;
+		int crackCounter = 0 ;
+
+      
+		filePtr2 = fopen(crackFileName, modePtr);
+
+		if(filePtr2 == NULL ){
+			crackFileName[0] = '\0';
+			printf(KRED "Error filename: '%s' does not exist, or could not be open...\n"RESET, crackFileName );
+		    return (-1);
+		}
+ 		do{
+	   		crackIndex = fgetc(filePtr2);
+	 
+	   		if( alphabetic( crackIndex)){
+
+	   			if( crackCounter == crackLength){
+	   				crackLength *=2;
+	   				crackPtr = realloc( crackPtr, crackLength*sizeof(char) );
+	   			}
+	   			crackPtr[crackCounter++] = tolower(crackIndex);
+	   		}
+	   		if( feof(filePtr2) ){
+	   			break;
+	   		}
+
+	   }while(true);
+         //RESET
+       
+	    filePtr =NULL;
+        filePtr2 =NULL;
+        fileBuffer =NULL;
+        free(filePtr);
+        free(filePtr2);
+        free(fileBuffer);
+        
+	   	// PRINT OUT TEST OF FILE ARRAY
+	    printf(KMAG"\nFILTRET OUTPUT:\t"RESET KGRN"%s\n\n"RESET, crackPtr ); 
+
+	 	// PASS TO ENCODER MESSAGE
+	    encodeMessage( bufferTempValue, crackPtr, 10000, dDistance);
+		// RESET KEY
+
+        crackPtr =NULL;
+        free(crackPtr);
+		return 0;
+}
+
+
+bool bracket(const char letter){
+
+	if( letter == '[' || letter == ']')
+		return true;
+	else
+		return false;
+
+}
+int getIntPosition(char *crackFile, int arrayLength, char charTarget){
+	
+	for( int i = 0 ; i < arrayLength; i++){
+
+		if(crackFile[i] == charTarget ){
+			printf("%d\n", i);
+			return i;
+		}
+	}
+
+	return charTarget;
+}
+
+int encodeMessage(char *encodedKey, char *crackFile, int counter, int dDistance){
+
+		printf(KMAG"ENCODED KEY  %s\n"RESET, encodedKey);
+		printf("SIZE OF TEMP: %d\n", counter);
+		char *messageArray = '\0';
+		char bufferTempValue[1000];
+	 	messageArray = malloc( sizeof(char)*10000 );
+
+		if( encodedKey == NULL){
+			printf( KRED"Error encodedFile was not found, or unable to open.\n" RESET);
+		    return -1;
+		}
+
+		if( crackFile == NULL){
+			printf( KRED"Error crackFile was not found, or unable to open.\n" RESET);
+		    return -1;
+		}
+		if(dDistance == 0 || dDistance == 1){
+			printf( KRED"Error D distance '%d' is to low!\n"RESET, dDistance);
+		    return -1;		
+		}
+
+		for(unsigned int j = 0; j < strlen(encodedKey); j++) {
+
+			if( bracket(encodedKey[j]) && isANumber(encodedKey[j])  ) {
+					char charPos = getCharPosition( crackFile, counter, encodedKey[j] );		
+					sprintf( bufferTempValue, "%c", charPos );
+					messageArray = strcat( messageArray, bufferTempValue );				
+			}
+			else{
+				sprintf(bufferTempValue, "%c", encodedKey[j] );
+				messageArray = strcat(messageArray, bufferTempValue);
+			}
+		}
+	
+		return 0;
+}
+
+
+// READ FILE MANUAL
+int readManualFileDecode(char filename[], const char *modePtr, char *manualKeyPtr, int dDistance){
+		
 		FILE* filePtr = NULL;
 		int index = 0;
 		
@@ -1521,22 +1651,44 @@ int readManualFile(char filename[], const char *modePtr, char *manualFilePtr,  c
 
 		// RESET KEY
 		if( manualKeyPtr !=NULL ){
+            free(manualKeyPtr);
 			manualKeyPtr[0] = '\0';
 		}
 		
-		CLOSEDFILE = closeManualFile( message, filePtr, manualFilePtr, manualKeyPtr );
-		
+		CLOSEDFILE = closeManualFile( message, filePtr );
 		return 0;
 }
 
-// CLOSE FILE MANUAL
-bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *manualKeyPtr ) {
+// GET A CHARACTER WITH ITS POSITION IN THE ARRAY
+int getCharPosition(char *fileArray, int arrayLength, char charTarget){
+	
+	char newCharTarget ='0';
 
+	for( int i = 0 ; i < arrayLength; i++){
+
+		if(fileArray[i] == charTarget ){
+			return i;
+		}
+	}
+	
+	newCharTarget = tolower(charTarget);
+	for(int j = 0 ; j < arrayLength; j++){
+
+		if(fileArray[j] == newCharTarget ){
+			j = j*UPPERCASE;
+			return j;
+		}
+	}
+	return newCharTarget;
+}
+
+// CLOSE FILE MANUAL
+bool closeManualFile( char *message, FILE* filePtr ) {
 	int inputValue = 0 ;
 	
 	do {
 
-		printf(KCYN "\nQUIT MENU\nVELG ET AV TRE VALG\n" MENUL RESET "\n[Tast '1' + enter]\tTilbake til DECODING\n[Tast '2' + enter]\tGÅ TIL ECNODING\n"KYEL"[Tast '3' + enter]\tAVSLUTTE PROGRAM)"RESET"\n" KCYN MENUL "\n:" RESET);
+		printf(KCYN "\nQUIT MENU\nVELG ET AV TRE VALG\n" MENUL RESET "\n[Tast '1' + enter]\tGÅ TILBAKE TIL DECODING\n[Tast '2' + enter]\tGÅ TILBAKE TIL ENCODING\n"KYEL"[Tast '3' + enter]\tAVSLUTTE PROGRAM)"RESET"\n" KCYN MENUL "\n:" RESET);
 		scanf("%d", &inputValue);
 	
 		switch(inputValue){
@@ -1552,16 +1704,11 @@ bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *m
 			case 2:
 					CLOSEDFILE = false;
 					return false;
-					//encoderMenu("", 0, 0, "r", "");
 					break;		
 			case 3: 
 					printQuit();
 					free(message);
 					message = NULL;
-					free(manualKeyPtr);
-				    free(manualFilePtr);
-				 	manualKeyPtr = NULL;
-				 	manualFilePtr = NULL;
 					fclose (filePtr);
 					CLOSEDFILE = true;				
 					break;
@@ -1580,6 +1727,12 @@ bool closeManualFile( char *message, FILE* filePtr, char *manualFilePtr, char *m
 bool alphabetic( const char letter){
 
 	if( ( letter >= 'a' && letter <= 'z') || ( letter >= 'A' && letter <= 'Z'))
+		return true;
+	else
+		return false;
+}
+bool isANumber( const int number){
+	if( number >= 0 && number >=9 )
 		return true;
 	else
 		return false;
@@ -1687,107 +1840,10 @@ bool compareTwoCharPtr( int xInput, int yInput ) {
 		return false;
 }
 
-// GET A CHARACTER WITH ITS POSITION IN THE ARRAY
-int getCharPosition(char *fileArray, int arrayLength, char charTarget){
-	
-	char newCharTarget ='0';
-
-	for( int i = 0 ; i < arrayLength; i++){
-
-		if(fileArray[i] == charTarget ){
-			return i;
-		}
-	}
-	
-	newCharTarget = tolower(charTarget);
-	for(int j = 0 ; j < arrayLength; j++){
-
-		if(fileArray[j] == newCharTarget ){
-			j = j*UPPERCASE;
-			return j;
-		}
-	}
-	return newCharTarget;
-}
-
 // DECODE A MESSAGE WITH A KEY AND LOOP THROUGH ALL CHECKS
 int decodeMessage(char *key, char *message, int counter, int dDistance) {
 
 		if(dDistance == 0 || dDistance == 1){
-			printf( KRED"Error D distance '%d' is to low!\n"RESET, dDistance);
-		    return -1;		
-		}
-
-		char *messageArray = '\0';
-		char bufferTempValue[64];
-		int charPos = 0;
-		messageArray = malloc( sizeof(char)*1000 );
-
-		if( key == NULL ){
-			printf( KRED"Error keyFile was not found, or where unable to open.\n" RESET);
-		    return -1;
-		}
-
-		for(unsigned int j = 0; j < strlen(key); j++) {
-
-			if( alphabetic (key[j]) ) {
-					charPos = getCharPosition( message, counter, key[j] );		
-					sprintf( bufferTempValue, "[%d]", charPos );
-					messageArray = strcat( messageArray, bufferTempValue );				
-			}
-			else{
-				sprintf(bufferTempValue, "%c", key[j] );
-				messageArray = strcat(messageArray, bufferTempValue);
-			}
-		}
-		printf(LINE"\n" KMAG"DIN KRYPTERTE KODE:  "RESET "%s\n" LINE "\n",messageArray );
-		//writeToFile(messageArray);    //TODO READ FROM FILE
-
-	    dDistance = 0;
-
-		return 0;
-}
-
-bool encodeFileManually(char inputFileName[], const char *modePtr, char *keyPtr ){
-	
-	int dDistance = 0;
-	char manualKey[100] = ""; 
-		 modePtr = NULL;
-	char *manualFilePtr = '\0';
-	
-	keyPtr  = malloc(sizeof(char) *1024);
-	manualFilePtr = malloc(sizeof(char) *1024);
-
-	if( keyPtr == NULL ){
-		printf(KRED "Out of memory\n"RESET);
-		return false;
-	}
-
-	// INPUT FILE NAME
-	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å BRUKE TIL Å ENCODE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
-    scanf(" %s", inputFileName);
-    manualFilePtr = strcat(manualFilePtr, inputFileName);
-    printf("%s\n", manualFilePtr );
-
-    // INPUT KEY 
-    printf(KCYN"\nSKRIV INN TEKSTEN DU ØNSKER Å ENCODE."RESET "\n(F.eks tast:  secret.txt  +'Trykk Enter'  )\n:");
-    scanf(" %[^\n]", manualKey);
-	keyPtr = strcpy(keyPtr, manualKey);
-
-	// INPUT D DISTANCE
-	printf(KCYN"\nSKRIV INN AVSTANDEN TIL '-d': ."RESET "\n(F.eks tast: '5' (betyr avstand d = 5) 'Trykk Enter'  )\n:");
-	scanf("%d", &dDistance);
-	printf("DU VALGTE d=%d\n", dDistance);
-	// INPUT INTO READFILE
-	readManualFile(inputFileName, modePtr, manualFilePtr, keyPtr, dDistance );   
-	//TODO!!!
-    
-    return true;
-}
-
-int encodeMessage(char *key,char *message, int counter, int dDistance ){
-
-	if(dDistance == 0 || dDistance == 1){
 			printf( KRED"Error D distance '%d' is to low!\n"RESET, dDistance);
 		    return -1;		
 		}
@@ -1820,8 +1876,44 @@ int encodeMessage(char *key,char *message, int counter, int dDistance ){
 	    dDistance = 0;
 
 		return 0;
-		// TODO!!
-	return 0;
+}
+// END OF READFILE MENU 
+bool decodeFileManually(){
+
+	int dDistance = 0;
+	const char *modePtr ="r";
+	char manualKey[100] ="";
+	char inputFileName[1000] = "";
+
+	char *manualKeyPtr = '\0';
+	manualKeyPtr  = malloc(sizeof(char) *1024);
+
+
+	if( manualKeyPtr == NULL ){
+		printf(KRED "Out of memory\n"RESET);
+		return false;
+	}
+
+	// INPUT FILE NAME
+	printf(KCYN"\nSKRIV INN NAVNET PÅ FILEN DU ØNSKER Å DECODE."RESET "\n(F.eks tast:  songLibrary/allThatSheWants.txt   +'Trykk Enter'  )\n:");
+    scanf(" %s", inputFileName);
+
+    // INPUT KEY 
+    printf(KCYN"\nSKRIV INN TEKSTEN DU ØNSKER Å KRYPTERE."RESET "\n(F.eks tast:  Dette er en hemmlighet  +'Trykk Enter'  )\n:");
+    scanf(" %[^\n]", manualKey);
+	strcpy(manualKeyPtr, manualKey);
+
+	// INPUT D DISTANCE
+	printf(KCYN"\nSKRIV INN AVSTANDEN TIL '-d': ."RESET "\n(F.eks tast: '5' (betyr avstand d = 5) 'Trykk Enter'  )\n:");
+	scanf("%d", &dDistance);
+	printf("DU VALGTE d=%d\n", dDistance);
+
+	printf("keyptr: %s\n", manualKeyPtr);
+
+	// INPUT INTO READFILE
+    readManualFileDecode(inputFileName, modePtr, manualKeyPtr, dDistance ); 
+    
+    return true;
 }
 
 int writeToFile(char *messageArray ){
@@ -1842,7 +1934,6 @@ int writeToFile(char *messageArray ){
 		}
 		return 0;
 }
-
 // INSERT D DISTANCE
 int chooseDistanceD(){
 
@@ -1937,6 +2028,65 @@ int readFromFile( char filename[], const char *modePtr, char *key){
 		return 0;
 }
 
+//READ FROM A FILE 'FILENAME, MODE, KEY'
+int readFromFile2( char filename[], const char *modePtr, char *key){
+
+		int dDistance = 0;
+		dDistance = chooseDistanceD();
+		printf("%d\n", dDistance);
+		printf("%s\n", filename );
+
+		FILE* filePtr = NULL;
+		int index = 0;
+		
+		char *message = malloc(sizeof(char)*2);
+		int length = 2;
+		int counter = 0 ;
+
+		filePtr = fopen(filename, modePtr);
+
+		if(filePtr == NULL ){
+			printf(KRED "Error file '%s' does not exist, or could not be open...\n"RESET, filename );
+			filename[0] = '\0';
+		    return (-1);
+		}
+		// RESET FILENAME ARRAY
+		if(filename != NULL){
+			filename[0] = '\0';
+		}
+		
+	   do{
+	   		index = fgetc(filePtr);
+	 
+	   		if( alphabetic( index)){
+
+	   			if( counter == length){
+	   				length *=2;
+	   				message = realloc( message, length*sizeof(char) );
+	   			}
+	   			message[counter++] = tolower(index);
+	   		}
+	   		if( feof(filePtr) ){
+	   			break;
+	   		}
+
+	   }while(true);
+	   
+	   	//RESET  MESSAGE
+	    message[counter]='\0';
+
+	   	// PRINT OUT TEST OF FILE ARRAY
+	    printf(KMAG"\nFILTRET OUTPUT:\t"RESET KGRN"%s\n\n"RESET, message ); 
+
+	    // KEY MESSAGE PRINT OUT
+		printf(KMAG"KEY:  "RESET KCYN"%s\n\n"RESET,key );  
+		encodeMessage(key ,message, counter, dDistance);
+
+		// CLOSE PROGRAM MENU
+		CLOSEDFILE = quitProgram(message, filePtr);
+		return 0;
+}
+
 // CLOSE FILE
 bool quitProgram( char *message, FILE* filePtr) {
 
@@ -1944,7 +2094,7 @@ bool quitProgram( char *message, FILE* filePtr) {
 	
 	do {
 
-		printf(KCYN "\n[QUIT MENU]\nVELG ET AV TRE VALG\n" MENUL RESET "\n[Tast '1' + enter]\tTilbake til DECODING\n[Tast '2' + enter]\tGÅ TIL ENCODING\n"KYEL"[Tast '3' + enter]\tAVSLUTTE PROGRAM)"RESET"\n" KCYN MENUL "\n:" RESET);
+		printf(KCYN "\n[QUIT MENU]\nVELG ET AV TRE VALG\n" MENUL RESET "\n[Tast '1' + enter]\tGÅ TILBAKE TIL DECODING\n[Tast '2' + enter]\tGÅ TILBAKE TIL ENCODING\n"KYEL"[Tast '3' + enter]\tAVSLUTTE PROGRAM)"RESET"\n" KCYN MENUL "\n:" RESET);
 		scanf("%d", &inputValue);
 	
 		switch(inputValue){
@@ -1959,8 +2109,8 @@ bool quitProgram( char *message, FILE* filePtr) {
 					break;
 			case 2:
 					CLOSEDFILE = false;
+					encoderMenu("", 0, 0, "r", "", '\0');
 					return false;
-					//encoderMenu("", 0, 0, "r", "");
 					break;
 			case 3: 
 					free(message);
@@ -1982,83 +2132,87 @@ bool quitProgram( char *message, FILE* filePtr) {
 
 // PRINT OUT ASCII ART
 void printQuit() {   
-printf(KCYN"\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n"RESET);
-unsigned int sleep();
-printf(KYEL"                                                                 \n");
-printf("                                                                 \n");
-printf("                               : @+@                             \n");           
-printf("                           : ' ;   @                            \n");          
-printf("                           :   :@#@@;`                            \n");         
-printf("                            .@::,,,,,,@                            \n");        
-printf("                           :@:#:,,,,,,,,`                             \n");      
-printf("                           @::@,,,,,,,,,,`                              \n");    
-printf("          	         '::::,,,,,,,,,,.@                              \n");    
-printf("                         :::::,,,,,,,,,,,`                               \n");  
-printf("                         ::::::,,,,,,,,,,,.#                               \n");  
-printf("                         @:::::,,,,,,,,,,,,;                               \n"); 
-sleep(1);
-printf("                         #:::::,,,,,,,,,,,,.                               \n"); 
-printf("                         #:::::,,,,,,,,,,,,.;                              \n"); 
-printf("                         @:::::,,@'@:,,,@'@:`                              \n");    
-printf("                         ;:::::@     +:     @                              \n"); 
-printf("                         ::::'       @      :                             \n"); 
-printf("       @#,               ::::,              '               ,;;:          \n"); 
-printf("    ':+:,,,              @:::  ;@         `.'              .:::';'        \n");   
-printf("   :,,,;,,,              ::@:`          :'  +              +',:::,:       \n");  
-printf("  @:,,,'@+@:            @ ::;@       @`..`@:              ;:,,@:,,:'      \n");  
-printf(" .,,,;,,:,,,,`           @@::@:,     ',,,,,:+             ;:,,,,','::#     \n");  
-printf(" +,,,,:;,,,,,@           @ @::::#,`:+,,,,,:+.             @::,,,.+:,,,,    \n");  
-printf(" ;+,,,':,,.:,+           ; @::::,,,:'#+'#@,.@             +:,;,,`:,,,,@    \n");  
-printf(" ;@:,,,,.`@,,'            ,+#:::,#:::::::,,,,.`           #:,,@.+:,;:,;    \n");  
-printf("  @::::@,++,,,,            ,:,:::@:,,,,,,,,,,,,#..        @::,,:,,+:',.     \n");  
-printf("  ::';:,,@,,,.@          ::'+::+:,,,,,,,,,,,,,,,,`      @:::,:,,,,,,.@     \n");  
-printf("   ':::::,,,,,,.@          :::::;,,,,,,,,,,,,,,+,+      @:::,,,,,,,,.+      \n");  
-printf("   @::::,,,,,,,.@          @@:::,,,,,,,,,,,,,,@,      #:::,,,,,,,,`@       \n");  
-printf("    @:::,,,,,,,,.@          #:;:,,,,,,,,,,,,,,,.    `':::,,,,,,,,.'        \n");  
-sleep(1); 									
-printf("     #:::,,,,,,,,.;         @:::,,,,,,,,,,,,,;.@   .::::,,,,,,,,.@         \n"); 
-printf("      ;:::,,,,,,,,,.        @:::,,,,,,,,,,,,,     #::::,,,,,,,,.:          \n");  
-printf("      .:::,,,,,,,,,,`,      @::@:,,,,,,,,,,,     @::::,,,,,,,,,`           \n");  
-printf("       #:::,,,,,,,,,,.@     @:::@,,,,,,,,,'    `;::::,,,,,,,,,`.           \n");  
-printf("        @:::,,,,,,,,,,,'.:  @::::@,,,,,,,@   ++':::,,,,,,,,,,`@            \n");  
-printf("         +:::,,,,,,,,,,,,@@ #::::,,;@@@:.@ `@```+:,,,,,,,,,,`@             \n");  
-printf("          ;:::,,,,,,,,,,,@`@#:``    .,,,.@;::```` ,,,,,,,,,.+              \n");  
-printf("           ::::,,,,,,,,,,  `@```     .,,,@` .```   :,,,,,,.,               \n");  
-printf("           `::::,,,,,,,,+   `:`    ,  @,,''  ``     ,,,,,..                \n");  
-printf("            ,::::,,,,,,,`    ,`    @   +,'#  '       ,,,,`                 \n");  
-printf("             :::::,,,,,#     `;    :    .    +       @,,``                 \n");  
-printf("              :::::,,,,       :@@@@        ; :        ,``                  \n");  
-printf("               ,::::,,:                     .         '.                   \n");  
-printf("                ,::::@         ,            +                              \n");  
-printf("                 `;:@                                 @                    \n");  
-printf("                  `@``                       '       @                     \n");  
-printf("                   @````                      +      +                      \n");  
-printf("                   '`````                         @                        \n");  
-printf("                     @````                   ':@.                          \n");  
-sleep(1); 
-printf("                       .@@##                  '                            \n");  
-printf("                        '``                    `                           \n");  
-printf("                       @``                                                 \n");  
-printf("                       ````                       ,                        \n");    
-printf("                      ```                         @                        \n");   
-printf("                     ;```                          `                       \n");   
-printf("                    @````                          ;                       \n");   
-printf("                   .````                            `                      \n");   
-printf("                   :````                            @                      \n");   
-printf("                  +`````                                                   \n");   
-printf("                  ,`````                             .                     \n");   
-printf("                 :``````                             @                     \n");   
-printf("                 @``````        .:'+@@@@':.          @                     \n");   
-printf("                 .`````   ,@+:::::,,,,,,:,:::;@'     '                     \n");   
-printf("                 ``````@+::::,,,,,,,,,,'#,,,,,,::;@  ;                     \n");   
-printf("                 ```:#;;:::'@@':,,,,,,,,,,,,,,,,:+@:++                     \n");   
-printf("                 @@;;;;;:::::::::::::;;;;;;;::::::::@+					   \n");   	
-sleep(1); 
-printf("																			\n");  
-printf("																			\n"RESET);  
-printf(KCYN" \t\t\t\tØNSKER DEG EN RIKTIG GOD KVELD! \n\n"RESET);
 
-exit(0);
+
+				printf(KCYN"\nProgrammet avsluttes!\n\t\tØnsker deg en fin dag videre!\n\n"RESET);
+				unsigned int sleep();
+
+				printf(KYEL"                                                                 \n");
+				printf("                                                                 \n");
+				printf("                               : @+@                             \n");           
+				printf("                           : ' ;   @                            \n");          
+				printf("                           :   :@#@@;`                            \n");         
+				printf("                            .@::,,,,,,@                            \n");        
+				printf("                           :@:#:,,,,,,,,`                             \n");      
+				printf("                           @::@,,,,,,,,,,`                              \n");    
+				printf("          	         '::::,,,,,,,,,,.@                              \n");    
+				printf("                         :::::,,,,,,,,,,,`                               \n");  
+				printf("                         ::::::,,,,,,,,,,,.#                               \n");  
+				printf("                         @:::::,,,,,,,,,,,,;                               \n"); 
+				sleep(1);
+				printf("                         #:::::,,,,,,,,,,,,.                               \n"); 
+				printf("                         #:::::,,,,,,,,,,,,.;                              \n"); 
+				printf("                         @:::::,,@'@:,,,@'@:`                              \n");    
+				printf("                         ;:::::@     +:     @                              \n"); 
+				printf("                         ::::'       @      :                             \n"); 
+				printf("       @#,               ::::,              '               ,;;:          \n"); 
+				printf("    ':+:,,,              @:::  ;@         `.'              .:::';'        \n");   
+				printf("   :,,,;,,,              ::@:`          :'  +              +',:::,:       \n");  
+				printf("  @:,,,'@+@:            @ ::;@       @`..`@:              ;:,,@:,,:'      \n");  
+				printf(" .,,,;,,:,,,,`           @@::@:,     ',,,,,:+             ;:,,,,','::#     \n");  
+				printf(" +,,,,:;,,,,,@           @ @::::#,`:+,,,,,:+.             @::,,,.+:,,,,    \n");  
+				printf(" ;+,,,':,,.:,+           ; @::::,,,:'#+'#@,.@             +:,;,,`:,,,,@    \n");  
+				printf(" ;@:,,,,.`@,,'            ,+#:::,#:::::::,,,,.`           #:,,@.+:,;:,;    \n");  
+				printf("  @::::@,++,,,,            ,:,:::@:,,,,,,,,,,,,#..        @::,,:,,+:',.     \n");  
+				printf("  ::';:,,@,,,.@          ::'+::+:,,,,,,,,,,,,,,,,`      @:::,:,,,,,,.@     \n");  
+				printf("   ':::::,,,,,,.@          :::::;,,,,,,,,,,,,,,+,+      @:::,,,,,,,,.+      \n");  
+				printf("   @::::,,,,,,,.@          @@:::,,,,,,,,,,,,,,@,      #:::,,,,,,,,`@       \n");  
+				printf("    @:::,,,,,,,,.@          #:;:,,,,,,,,,,,,,,,.    `':::,,,,,,,,.'        \n");  
+				sleep(1); 									
+				printf("     #:::,,,,,,,,.;         @:::,,,,,,,,,,,,,;.@   .::::,,,,,,,,.@         \n"); 
+				printf("      ;:::,,,,,,,,,.        @:::,,,,,,,,,,,,,     #::::,,,,,,,,.:          \n");  
+				printf("      .:::,,,,,,,,,,`,      @::@:,,,,,,,,,,,     @::::,,,,,,,,,`           \n");  
+				printf("       #:::,,,,,,,,,,.@     @:::@,,,,,,,,,'    `;::::,,,,,,,,,`.           \n");  
+				printf("        @:::,,,,,,,,,,,'.:  @::::@,,,,,,,@   ++':::,,,,,,,,,,`@            \n");  
+				printf("         +:::,,,,,,,,,,,,@@ #::::,,;@@@:.@ `@```+:,,,,,,,,,,`@             \n");  
+				printf("          ;:::,,,,,,,,,,,@`@#:``    .,,,.@;::```` ,,,,,,,,,.+              \n");  
+				printf("           ::::,,,,,,,,,,  `@```     .,,,@` .```   :,,,,,,.,               \n");  
+				printf("           `::::,,,,,,,,+   `:`    ,  @,,''  ``     ,,,,,..                \n");  
+				printf("            ,::::,,,,,,,`    ,`    @   +,'#  '       ,,,,`                 \n");  
+				printf("             :::::,,,,,#     `;    :    .    +       @,,``                 \n");  
+				printf("              :::::,,,,       :@@@@        ; :        ,``                  \n");  
+				printf("               ,::::,,:                     .         '.                   \n");  
+				printf("                ,::::@         ,            +                              \n");  
+				printf("                 `;:@                                 @                    \n");  
+				printf("                  `@``                       '       @                     \n");  
+				printf("                   @````                      +      +                      \n");  
+				printf("                   '`````                         @                        \n");  
+				printf("                     @````                   ':@.                          \n");  
+				sleep(1); 
+				printf("                       .@@##                  '                            \n");  
+				printf("                        '``                    `                           \n");  
+				printf("                       @``                                                 \n");  
+				printf("                       ````                       ,                        \n");    
+				printf("                      ```                         @                        \n");   
+				printf("                     ;```                          `                       \n");   
+				printf("                    @````                          ;                       \n");   
+				printf("                   .````                            `                      \n");   
+				printf("                   :````                            @                      \n");   
+				printf("                  +`````                                                   \n");   
+				printf("                  ,`````                             .                     \n");   
+				printf("                 :``````                             @                     \n");   
+				printf("                 @``````        .:'+@@@@':.          @                     \n");   
+				printf("                 .`````   ,@+:::::,,,,,,:,:::;@'     '                     \n");   
+				printf("                 ``````@+::::,,,,,,,,,,'#,,,,,,::;@  ;                     \n");   
+				printf("                 ```:#;;:::'@@':,,,,,,,,,,,,,,,,:+@:++                     \n");   
+				printf("                 @@;;;;;:::::::::::::;;;;;;;::::::::@+					   \n");   	
+				sleep(1); 
+				printf("																			\n");  
+				printf("																			\n"RESET);  
+
+
+				printf(KCYN" \t\t\t\tØNSKER DEG EN RIKTIG GOD KVELD! \n\n"RESET);
+
+				exit(0);
  }
-
 
